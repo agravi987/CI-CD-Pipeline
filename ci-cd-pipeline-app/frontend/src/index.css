@@ -1,0 +1,90 @@
+:root {
+  --accent: #6d37e8;
+  --accent-strong: #8b5cf6;
+  --accent-soft: rgba(109, 55, 232, 0.1);
+  --accent-border: rgba(109, 55, 232, 0.35);
+
+  --bg: #f6f5fb;
+  --bg-elevated: #ffffff;
+  --text: #5d6172;
+  --text-strong: #1a1729;
+  --border: #e7e5f1;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+
+  --shadow-sm: 0 1px 2px rgba(26, 23, 41, 0.06);
+  --shadow-md: 0 12px 28px -10px rgba(26, 23, 41, 0.18);
+  --shadow-lg: 0 28px 56px -14px rgba(26, 23, 41, 0.28);
+
+  --sans: "Inter", system-ui, "Segoe UI", Roboto, -apple-system, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  font: 16px/1.5 var(--sans);
+  letter-spacing: 0.1px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #a78bfa;
+    --accent-strong: #c4b5fd;
+    --accent-soft: rgba(167, 139, 250, 0.14);
+    --accent-border: rgba(167, 139, 250, 0.4);
+
+    --bg: #12121b;
+    --bg-elevated: #1c1b29;
+    --text: #9d9db4;
+    --text-strong: #f0eff8;
+    --border: #2c2b3d;
+    --success: #4ade80;
+    --danger: #f87171;
+    --warning: #fbbf24;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 12px 28px -10px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 28px 56px -14px rgba(0, 0, 0, 0.7);
+  }
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 480px at 12% -8%, var(--accent-soft), transparent 60%),
+    radial-gradient(900px 420px at 100% 0%, rgba(217, 119, 6, 0.07), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  color: var(--text-strong);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  padding: 0.15em 0.45em;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+#root {
+  min-height: 100vh;
+}
