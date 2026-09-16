@@ -1,0 +1,96 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment to rollback"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: "Image tag to rollback to (e.g. v1.2.2, sha-abc1234)"
+        required: true
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-frontend
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1 — Rollback staging (only runs when "staging" is picked)
+  # ─────────────────────────────────────────────────────────────────────────
+  rollback-staging:
+    name: "Rollback Staging"
+    if: github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rollback via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: deploy
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            cd /opt/cicd-staging
+            export GHCR_OWNER=${{ github.repository_owner }}
+            export BACKEND_IMAGE_TAG=${{ github.event.inputs.version }}
+            export FRONTEND_IMAGE_TAG=${{ github.event.inputs.version }}
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            sleep 10
+            curl -sf http://localhost:8080/api/health || { echo "❌ Health check failed"; exit 1; }
+            docker image prune -f
+            echo "✅ Staging rolled back to ${{ github.event.inputs.version }}"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2 — Rollback production (only runs when "production" is picked)
+  # ─────────────────────────────────────────────────────────────────────────
+  rollback-production:
+    name: "Rollback Production"
+    if: github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rollback via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: deploy
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            cd /opt/cicd-production
+            export GHCR_OWNER=${{ github.repository_owner }}
+            export BACKEND_IMAGE_TAG=${{ github.event.inputs.version }}
+            export FRONTEND_IMAGE_TAG=${{ github.event.inputs.version }}
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            sleep 15
+            curl -sf http://localhost:8080/api/health || { echo "❌ Health check failed"; exit 1; }
+            docker image prune -f
+            echo "✅ Production rolled back to ${{ github.event.inputs.version }}"
+
+  summary:
+    name: "Rollback Summary"
+    runs-on: ubuntu-latest
+    needs: [rollback-staging, rollback-production]
+    if: always()
+    steps:
+      - name: Print summary
+        run: |
+          echo "### ⏪ Rollback Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** \`${{ github.event.inputs.environment }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** \`${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY

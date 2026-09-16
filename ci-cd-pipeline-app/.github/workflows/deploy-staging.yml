@@ -1,0 +1,71 @@
+name: Deploy to Staging
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      STAGING_SSH_KEY:
+        required: true
+      STAGING_HOST:
+        required: true
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-frontend
+
+jobs:
+  deploy-staging:
+    name: "Deploy to Staging"
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tags
+        id: tags
+        run: |
+          SHA_SHORT="${GITHUB_SHA::7}"
+          echo "backend=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "frontend=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: deploy
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "Logging into GHCR..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            cd /opt/cicd-staging
+
+            echo "Pulling new images..."
+            export GHCR_OWNER=${{ github.repository_owner }}
+            export BACKEND_IMAGE_TAG=${{ steps.tags.outputs.backend }}
+            export FRONTEND_IMAGE_TAG=${{ steps.tags.outputs.frontend }}
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "Bringing up new containers..."
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "Waiting for services to stabilize..."
+            sleep 10
+
+            echo "Running health checks..."
+            curl -sf http://localhost:8080/api/health || { echo "❌ Staging health check failed"; exit 1; }
+
+            echo "Cleaning old images..."
+            docker image prune -f
+
+            echo "✅ Staging deployed successfully"
+
+      - name: Post deploy summary
+        run: |
+          echo "### 🚀 Staging Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend tag:** \`${{ steps.tags.outputs.backend }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend tag:** \`${{ steps.tags.outputs.frontend }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
