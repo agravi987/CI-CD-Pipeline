@@ -1,4 +1,4 @@
-# 🏗️ Milestone 4 — The Full CI Pipeline
+# 🏗️ Milestone 7 — The Full CI Pipeline
 
 ## 🎯 Goal
 
@@ -180,8 +180,8 @@ On the Actions page now:
 In the run's **Artifacts** tab you'll find `sboms` (two `.json` files). Download
 one and peek — every dependency, with versions. That's your audit trail.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/04-ci-pipeline.png`** — the Actions run showing all **4 jobs green**, with the logs of the Docker job visible in the background.
-> ![Proof of work — full CI pipeline green](screenshots/04-ci-pipeline.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/07-ci-pipeline.png`** — the Actions run showing all **4 jobs green**, with the logs of the Docker job visible in the background.
+> ![Proof of work — full CI pipeline green](screenshots/07-ci-pipeline.png)
 
 ---
 
@@ -204,9 +204,9 @@ one and peek — every dependency, with versions. That's your audit trail.
 [ ] ✔️ Trivy scan output is visible in the run logs
 [ ] ✔️ SBOM artifacts downloadable from the run
 [ ] ✔️ Whole pipeline green on your branch + on the open PR
-[ ] ✔️ Screenshot saved as docs/screenshots/04-ci-pipeline.png
+[ ] ✔️ Screenshot saved as docs/screenshots/07-ci-pipeline.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 5 — Container Registry: Push to GHCR](05-container-registry-push-to-ghcr.md)
+➡️ **Next:** [Milestone 8 — Container Registry: Push to GHCR](08-container-registry-push-to-ghcr.md)

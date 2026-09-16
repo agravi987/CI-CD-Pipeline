@@ -1,4 +1,4 @@
-# ⏪ Milestone 9 — Rollback & Deployment Strategies
+# ⏪ Milestone 12 — Rollback & Deployment Strategies
 
 ## 🎯 Goal
 
@@ -36,7 +36,7 @@ v1.0.0 (live again) ✅   v1.0.1 stays in GHCR (investigate + fix later)
 ```
 
 Rollback isn't "undo git" — it's **redeploy a known-good artifact tag**. That's
-why you tagged everything by SHA and version in Milestone 5. 🏷️
+why you tagged everything by SHA and version in Milestone 8. 🏷️
 
 ---
 
@@ -87,7 +87,7 @@ jobs:
 It's just a **deploy with an explicit tag**. `rollback-production` is identical
 with `PROD_*` secrets and `/opt/cicd-production`. Two jobs, each `if:`-gated to
 its environment. Read the `.env` from into the compose file has already been
-done in M7/M8 — nothing else to change.
+done in M10/M11 — nothing else to change.
 
 ---
 
@@ -131,8 +131,8 @@ curl http://<STAGING_IP>:8080/api/health     # {"status":"ok",...}
 
 You just performed a production-grade recovery with one click. 🧯✨
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/09-rollback.png`** — the Rollback run green, showing `✅ ... rolled back to <tag>`, with the `/api/health` JSON next to it.
-> ![Proof of work — rollback succeeded](screenshots/09-rollback.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/12-rollback.png`** — the Rollback run green, showing `✅ ... rolled back to <tag>`, with the `/api/health` JSON next to it.
+> ![Proof of work — rollback succeeded](screenshots/12-rollback.png)
 
 ---
 
@@ -140,7 +140,7 @@ You just performed a production-grade recovery with one click. 🧯✨
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `manifest unknown` on pull | Typos/tag doesn't exist in GHCR | Use exactly the tags from Milestone 5 screenshot |
+| `manifest unknown` on pull | Typos/tag doesn't exist in GHCR | Use exactly the tags from Milestone 8 screenshot |
 | Rollback job never runs | `if:` environment mismatch (`staging` vs `production`) | Check the dropdown value matches an option |
 | Health check fails after rollback | Old image also depended on DB state | On the server: `docker compose logs --tail 50`, check `.env` |
 | Approvals slow you down | prod rollback requires review | Expect it — that's the point of protection 🧑‍✈️ |
@@ -155,9 +155,9 @@ You just performed a production-grade recovery with one click. 🧯✨
 [ ] ✔️ You simulated a failed deploy (staging refused the bad tag)
 [ ] ✔️ One-click rollback to a known-good tag succeeded
 [ ] ✔️ Health endpoint verified after rollback
-[ ] ✔️ Screenshot saved as docs/screenshots/09-rollback.png
+[ ] ✔️ Screenshot saved as docs/screenshots/12-rollback.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 10 — Quality Gates: Branch Protection](10-quality-gates-branch-protection.md)
+➡️ **Next:** [Milestone 13 — Quality Gates: Branch Protection](13-quality-gates-branch-protection.md)

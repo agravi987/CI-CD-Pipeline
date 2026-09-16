@@ -1,4 +1,4 @@
-# 🏁 Milestone 11 — The Final Pipeline & Portfolio Story
+# 🏁 Milestone 14 — The Final Pipeline & Portfolio Story
 
 ## 🎯 Goal
 
@@ -14,14 +14,14 @@ you can talk about for 10 minutes straight. 🎤
 1  git checkout -b feature/price-widget          ← branch (M1)
 2  code it, commit, push                          ← code (M1)
 3  open PR                                        ← review flow (M1)
-4  CI runs: lint + tests + docker + trivy (M3-4) ← automatic
-5  merge to main                                  ← protected (M10)
-6  build-and-push → GHCR (sha-<hash> tags) (M5)   ← automatic
-7  staging deploy + health check (M7)             ← automatic
-8  git tag v1.1.0 && push                         ← version (M5/M8)
+4  CI runs: lint + tests + docker + trivy (M6-7) ← automatic
+5  merge to main                                  ← protected (M13)
+6  build-and-push → GHCR (sha-<hash> tags) (M8)   ← automatic
+7  staging deploy + health check (M10)             ← automatic
+8  git tag v1.1.0 && push                         ← version (M8/M11)
 9  prod deploy requested                          ← automatic
-10 approval → prod live + health check (M8)       ← human + automatic
-11 something breaks? rollback to v1.0.0 (M9)      ← one click
+10 approval → prod live + health check (M11)       ← human + automatic
+11 something breaks? rollback to v1.0.0 (M12)      ← one click
 ```
 
 Read it again. Your hand did **almost none** of steps 4–10. That's not a demo;
@@ -40,33 +40,33 @@ milestone's proof):
 git checkout -b feature/final-demo main
 # make any small real change — fix a copy string, add an endpoint test
 
-# 2. Run tests locally first (M2)
+# 2. Run tests locally first (M5)
 cd ci-cd-pipeline-app\backend; npm test          # all 6 green with DB, 3 green without
 
 # 3. Commit + push + open PR (M1)
 git add . && git commit -m "feat: final demo change"
-git push -u origin feature/final-demo            # CI auto-runs on push (M3)
+git push -u origin feature/final-demo            # CI auto-runs on push (M6)
 # open the PR on GitHub (M1)
 
-# 4. Wait for CI, merge (M10)
+# 4. Wait for CI, merge (M13)
 #    merge button only unlocks when "CI — Lint, Test, Build & Scan" is green
 
-# 5. Watch the chain fire by itself (M5 + M7)
+# 5. Watch the chain fire by itself (M8 + M10)
 #    main push → build-and-push → GHCR → deploy-staging → health check
 
-# 6. Release it to production (M8)
+# 6. Release it to production (M11)
 git tag v1.1.0 && git push origin v1.1.0
 #    build-and-push builds v1.1.0 → deploys prod → Waiting for approval
 
-# 7. Approve (M8) → prod live
+# 7. Approve (M11) → prod live
 #    curl http://<PROD_IP>:8080/api/health → {"status":"ok",...}
 ```
 
-If any link in the chain misbehaves, the checkpoint tables in Milestones 3–9
+If any link in the chain misbehaves, the checkpoint tables in Milestones 6–12
 have the fixes. Fix → re-push → re-watch.
 
-> 📸 **Proof of work (THE one):** saved in **`docs/screenshots/11-final-pipeline.png`** — the Actions **workflow runs list** for the release: **[build-and-push] ✅**, **[deploy-staging] ✅**, **[deploy-production] ✅ (after approval)**, plus the terminal `curl` returning `{"status":"ok",...}`. This one image is your whole project.
-> ![Proof of work — final end-to-end pipeline](screenshots/11-final-pipeline.png)
+> 📸 **Proof of work (THE one):** saved in **`docs/screenshots/14-final-pipeline.png`** — the Actions **workflow runs list** for the release: **[build-and-push] ✅**, **[deploy-staging] ✅**, **[deploy-production] ✅ (after approval)**, plus the terminal `curl` returning `{"status":"ok",...}`. This one image is your whole project.
+> ![Proof of work — final end-to-end pipeline](screenshots/14-final-pipeline.png)
 
 ---
 
@@ -113,7 +113,7 @@ have the fixes. Fix → re-push → re-watch.
 [ ] ✔️ Release tag → approval → production — end-to-end verified
 [ ] ✔️ Health endpoint returns {"status":"ok"} after every deploy
 [ ] ✔️ No secrets, keys, or .env files in the repo
-[ ] ✔️ The ONE screenshot in docs/screenshots/11-final-pipeline.png
+[ ] ✔️ The ONE screenshot in docs/screenshots/14-final-pipeline.png
 [ ] ✔️ You can say the 12-second pitch without reading
 ```
 

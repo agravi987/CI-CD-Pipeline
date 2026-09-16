@@ -4,23 +4,69 @@ Learn CI/CD end-to-end: **make an app testable → gate every PR with automated 
 
 ---
 
-## 🗺️ The Journey (11 Milestones)
+## 🧭 Choose Your Path
 
-| # | 🏁 Milestone | What you do | ⏱️ Time |
-|---|-----------|-------------|------|
-| 1 | [🌿 Setup, Git Branching & Pull Requests](01-setup-git-branching-and-pull-requests.md) | Repo, feature branches, the PR flow that pipelines hook into | 30 min |
-| 2 | [🧪 Make the App Testable](02-make-the-app-testable.md) | Write unit + integration tests, run them locally | 35 min |
-| 3 | [⚙️ Your First Workflow](03-your-first-workflow.md) | GitHub Actions anatomy + CI that runs on every PR | 40 min |
-| 4 | [🏗️ The Full CI Pipeline](04-the-full-ci-pipeline.md) | Docker builds, Trivy security scan, SBOM artifacts | 40 min |
-| 5 | [🗄️ Container Registry — Push to GHCR](05-container-registry-push-to-ghcr.md) | Sign in, tag by SHA/version, publish your images | 30 min |
-| 6 | [🔐 Environments, Secrets & Variables](06-environments-secrets-and-variables.md) | staging vs production, secrets, protected environments | 30 min |
-| 7 | [🟠 Deploy to Staging (CD)](07-deploy-to-staging.md) | SSH to a server, pull + compose up, health check | 45 min |
-| 8 | [🔴 Deploy to Production](08-deploy-to-production.md) | Release tags, approval gate, promote staging → prod | 40 min |
-| 9 | [⏪ Rollback & Deployment Strategies](09-rollback-and-deployment-strategies.md) | Redeploy any version, blue-green / rolling concepts | 35 min |
-| 10 | [🛡️ Quality Gates & Branch Protection](10-quality-gates-branch-protection.md) | Protected branches, badges, notifications, Dependabot | 30 min |
-| 11 | [🏁 The Final Pipeline & Portfolio Story](11-final-pipeline-and-portfolio-story.md) | One push → live from scratch, cleanup, interview pitch | 25 min |
+This guide serves **two kinds of learners**. Pick the one that matches you:
 
-**Total: ~6 hours.**
+### 🅰️ Option 1 — "I already have / want to use the app" (recommended, fastest)
+
+The full-stack app (React + Nginx, Node/Express, PostgreSQL — containerized) is
+**already in this repo**. You don't build it; you **automate it**.
+
+```text
+Follow Milestone 1 (git setup) ──▶ jump to Milestone 5 (make it testable) ──▶
+continue through Milestone 14.  Total: ~6 hours. ⏱️
+```
+
+| Skip 💨 | Do from 💪 |
+|---------|-----------|
+| Milestones 2–4 (building the app by hand) | [M1 → Setup](01-setup-git-branching-and-pull-requests.md) → [M5 → Make it Testable](05-make-the-app-testable.md) → … → [M14 → Final Pipeline](14-final-pipeline-and-portfolio-story.md) |
+
+> ✅ The app files in `ci-cd-pipeline-app/` are *your starting point*, not the answer key —
+> it's a known-good Project 2 result for you to run and improve.
+
+### 🅱️ Option 2 — "I want to build the app myself too" (full journey)
+
+Follow every milestone **in order**. Milestones 2–4 walk you through building
+the frontend, backend + database, and containerizing it with Docker Compose —
+the same app that Option 1 starts with. Then the pipeline milestones kick in.
+
+```text
+Follow Milestones 1 through 14, straight through.  Total: ~8.5 hours. ⏱️
+```
+
+| Step | What you build |
+|------|----------------|
+| [M2 → Build the Frontend](02-build-the-app-frontend.md) | React + Vite message-wall UI |
+| [M3 → Build the Backend & Database](03-build-the-app-backend.md) | Express API + PostgreSQL |
+| [M4 → Containerize & Docker Compose](04-containerize-with-docker.md) | Dockerfiles + compose → `docker compose up` |
+
+> 💡 The completed files already in the repo are your **spec AND answer key** —
+> type the code yourself to learn, then compare when you're stuck.
+
+---
+
+## 🗺️ The Journey (14 Milestones)
+
+| # | 🏁 Milestone | What you do | ⏱️ | Path |
+|---|-----------|-------------|------|------|
+| 1 | [🌿 Setup, Git Branching & Pull Requests](01-setup-git-branching-and-pull-requests.md) | Repo, feature branches, the PR flow pipelines hook into | 30 min | 🅰️+🅱️ |
+| 2 | [🎨 Build the Frontend (React)](02-build-the-app-frontend.md) | Vite + React message wall, dev proxy to the API | 40 min | 🅱️ |
+| 3 | [🐘 Build the Backend & Database](03-build-the-app-backend.md) | Express API, PostgreSQL table, curl round-trip | 45 min | 🅱️ |
+| 4 | [🐳 Containerize & Docker Compose](04-containerize-with-docker.md) | Multi-stage Dockerfiles, Nginx, one-command stack | 45 min | 🅱️ |
+| 5 | [🧪 Make the App Testable](05-make-the-app-testable.md) | Unit + integration tests, run them locally | 35 min | 🅰️+🅱️ |
+| 6 | [⚙️ Your First Workflow](06-your-first-workflow.md) | GitHub Actions anatomy + CI that runs on every PR | 40 min | 🅰️+🅱️ |
+| 7 | [🏗️ The Full CI Pipeline](07-the-full-ci-pipeline.md) | Docker builds, Trivy security scan, SBOM artifacts | 40 min | 🅰️+🅱️ |
+| 8 | [🗄️ Container Registry — Push to GHCR](08-container-registry-push-to-ghcr.md) | Sign in, tag by SHA/version, publish your images | 30 min | 🅰️+🅱️ |
+| 9 | [🔐 Environments, Secrets & Variables](09-environments-secrets-and-variables.md) | staging vs production, secrets, protected environments | 30 min | 🅰️+🅱️ |
+| 10 | [🟠 Deploy to Staging (CD)](10-deploy-to-staging.md) | SSH to a server, pull + compose up, health check | 45 min | 🅰️+🅱️ |
+| 11 | [🔴 Deploy to Production](11-deploy-to-production.md) | Release tags, approval gate, promote staging → prod | 40 min | 🅰️+🅱️ |
+| 12 | [⏪ Rollback & Deployment Strategies](12-rollback-and-deployment-strategies.md) | Redeploy any version, blue-green / rolling concepts | 35 min | 🅰️+🅱️ |
+| 13 | [🛡️ Quality Gates & Branch Protection](13-quality-gates-branch-protection.md) | Protected branches, badges, notifications, Dependabot | 30 min | 🅰️+🅱️ |
+| 14 | [🏁 The Final Pipeline & Portfolio Story](14-final-pipeline-and-portfolio-story.md) | One push → live from scratch, cleanup, interview pitch | 25 min | 🅰️+🅱️ |
+
+- **🅰️ Option 1 total: ~6 hours** (Skip M2–4.)
+- **🅱️ Option 2 total: ~8.5 hours** (All 14.)
 
 ---
 
@@ -37,16 +83,19 @@ inline at the step where the proof matters. Your job at each checkpoint:
 ```
 docs/screenshots/
 ├── 01-git-branching.png        ← git graph showing branches + PR (M1)
-├── 02-local-tests.png          ← "N tests passed / skipped" locally  (M2)
-├── 03-first-workflow.png       ← your first green Actions run        (M3)
-├── 04-ci-pipeline.png          ← all CI jobs green + scan tab clean? (M4)
-├── 05-ghcr-images.png          ← your packages listed on GHCR        (M5)
-├── 06-environments-secrets.png ← Environments page with staging/prod (M6)
-├── 07-staging-deploy.png       ← staging server shows the new commit  (M7)
-├── 08-production-deploy.png    ← workflow run with "Approval" step + live prod (M8)
-├── 09-rollback.png             ← rollback run finished green          (M9)
-├── 10-branch-protection.png    ← branch protection rules on main      (M10)
-└── 11-final-pipeline.png       ← THE money shot: one push → live      (M11)
+├── 02-build-frontend.png       ← the React app rendering (M2)          🅱️
+├── 03-build-backend.png        ← curl POST+GET round-trip (M3)         🅱️
+├── 04-docker-up.png            ← compose ps: all 3 healthy (M4)        🅱️
+├── 05-local-tests.png          ← "N tests passed / skipped" locally  (M5)
+├── 06-first-workflow.png       ← your first green Actions run        (M6)
+├── 07-ci-pipeline.png          ← all CI jobs green + scan tab clean? (M7)
+├── 08-ghcr-images.png          ← your packages listed on GHCR        (M8)
+├── 09-environments-secrets.png ← Environments page with staging/prod (M9)
+├── 10-staging-deploy.png       ← staging server shows the new commit  (M10)
+├── 11-production-deploy.png    ← workflow run with "Approval" step + live prod (M11)
+├── 12-rollback.png             ← rollback run finished green          (M12)
+├── 13-branch-protection.png    ← branch protection rules on main      (M13)
+└── 14-final-pipeline.png       ← THE money shot: one push → live      (M14)
 ```
 
 The image sits right at the command it proves. Replace the placeholder, keep
@@ -98,11 +147,12 @@ Health Check — curl /api/health 🏥
 
 ## ⚡ Rules for following this guide
 
-1. Do the milestones **in order** — each one builds on the last.
+1. Do the **non-skipped** milestones **in order** — each one builds on the last.
 2. Run **every command**. Don't skip the checkpoints.
 3. Red/error output is not always failure — the guide says when.
 4. GitHub UI changes slightly over time — the *concepts* here don't. If a button moved, look for the equivalent one.
-5. Milestones 1–6 are all free with a **free GitHub account** — GitHub Actions gives you 2,000 minutes/month. Milestones 7–8 need two cheap servers (or one server running both envs — the guide shows both).
+5. Milestones 1 and 5–9 are all free with a **free GitHub account** — GitHub Actions gives you 2,000 minutes/month. Milestones 10–11 need two cheap servers (or one server running both envs — the guide shows both).
+6. On **Option 2**, the committed app files are your reference answer — build yours, then compare.
 
 ---
 
@@ -116,8 +166,8 @@ Health Check — curl /api/health 🏥
 | **Blocked by** | a failing test | a failed CI **or** a human approval gate |
 | **Keyword** | "prove it works" | "ship the thing you proved" |
 
-You cannot have good CD without good CI — that's why Milestones 2–5 (all CI)
-come before Milestones 7–8 (all CD).
+You cannot have good CD without good CI — that's why Milestones 5–8 (all CI)
+come before Milestones 10–11 (all CD).
 
 ---
 
@@ -126,22 +176,22 @@ come before Milestones 7–8 (all CD).
 ```
 ci-cd-pipeline-app/
 ├── .github/workflows/
-│   ├── ci.yml                 ← CI: lint, test, build, scan        (M3, M4)
-│   ├── build-and-push.yml     ← publish images to GHCR             (M5)
-│   ├── deploy-staging.yml     ← auto-deploy main → staging         (M7)
-│   ├── deploy-production.yml  ← release tag + approval → prod      (M8)
-│   └── rollback.yml           ← redeploy any old tag (SSH)         (M9)
+│   ├── ci.yml                 ← CI: lint, test, build, scan        (M6, M7)
+│   ├── build-and-push.yml     ← publish images to GHCR             (M8)
+│   ├── deploy-staging.yml     ← auto-deploy main → staging         (M10)
+│   ├── deploy-production.yml  ← release tag + approval → prod      (M11)
+│   └── rollback.yml           ← redeploy any old tag (SSH)         (M12)
 ├── backend/
 │   └── src/
-│       ├── app.js             ← the Express app (exported!)        (M2)
-│       ├── index.js           ← entry point (starts the server)    (M2)
-│       ├── app.test.js        ← unit tests, no DB                  (M2)
-│       └── db.test.js         ← integration tests, needs Postgres  (M2)
-├── frontend/                  ← React + Nginx (lint + build in CI)
+│       ├── app.js             ← the Express app (exported!)        (M3/M5)
+│       ├── index.js           ← entry point (starts the server)    (M3/M5)
+│       ├── app.test.js        ← unit tests, no DB                  (M5)
+│       └── db.test.js         ← integration tests, needs Postgres  (M5)
+├── frontend/                  ← React + Nginx (lint + build in CI) (M2)
 ├── deploy/
-│   ├── docker-compose.prod.yml ← compose file that LIVES on servers (M7)
-│   └── deploy.sh               ← pull → up → health check → prune    (M7)
-└── docker-compose.yml
+│   ├── docker-compose.prod.yml ← compose file that LIVES on servers (M10)
+│   └── deploy.sh               ← pull → up → health check → prune    (M10)
+└── docker-compose.yml         ← db + backend + frontend             (M4)
 ```
 
 ---
@@ -154,4 +204,4 @@ ci-cd-pipeline-app/
 
 ---
 
-🚀 **Start here:** [Milestone 1 — Setup, Git Branching & Pull Requests](01-setup-git-branching-and-pull-requests.md)
+🚀 **Start here:** [Milestone 1 — Setup, Git Branching & Pull Requests](01-setup-git-branching-and-pull-requests.md) (both options start the same way)

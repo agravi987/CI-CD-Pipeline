@@ -1,4 +1,4 @@
-# 🔴 Milestone 8 — Deploy to Production
+# 🔴 Milestone 11 — Deploy to Production
 
 ## 🎯 Goal
 
@@ -10,7 +10,7 @@ production is deliberate. That contrast is the whole point. 🧑‍✈️
 
 ## 🧠 Why production needs a different path
 
-| | Staging (M7) | Production (you are here) |
+| | Staging (M10) | Production (you are here) |
 |---|---|---|
 | Trust | Experimental | Real users |
 | Trigger | any merge to `main` | only a `v1.2.3` release tag |
@@ -20,14 +20,14 @@ production is deliberate. That contrast is the whole point. 🧑‍✈️
 The pipeline enforces this with:
 
 1. **The trigger** — production deploys from release tags only (branch = the gate).
-2. **The environment** — `environment: production` with *Required reviewers* (Milestone 6).
+2. **The environment** — `environment: production` with *Required reviewers* (Milestone 9).
 3. **The tag you type** — production deploys the tagged image, not "whatever main has now."
 
 ---
 
 ## 📝 Step 1 — Prepare the production server
 
-Repeat Milestone 7 Step 1 on the prod server (install Docker, `deploy` user,
+Repeat Milestone 10 Step 1 on the prod server (install Docker, `deploy` user,
 `/opt/cicd-production`), and copy the deploy files there:
 
 ```powershell
@@ -86,7 +86,7 @@ and `/opt/cicd-production`. Two differences from staging:
 1. `environment: production` → GitHub **pauses** the run until a reviewer clicks
    **Approve and deploy**.
 2. `workflow_dispatch.inputs.version` → you can also say *which version* to
-   deploy without moving `main` (that's your rollback primitive, M9).
+   deploy without moving `main` (that's your rollback primitive, M12).
 
 ---
 
@@ -128,8 +128,8 @@ starting. 🚦
 Open `http://<PROD_IP>:8080` — your app, versioned, gated, deployed by a
 pipeline. That's the "I can automate software delivery" moment. 🏆
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/08-production-deploy.png`** — the Production run showing the 🔕 **Waiting for approval** step, your **Approve and deploy** click, and the green run + live site.
-> ![Proof of work — gated production deploy](screenshots/08-production-deploy.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/11-production-deploy.png`** — the Production run showing the 🔕 **Waiting for approval** step, your **Approve and deploy** click, and the green run + live site.
+> ![Proof of work — gated production deploy](screenshots/11-production-deploy.png)
 
 ---
 
@@ -151,9 +151,9 @@ pipeline. That's the "I can automate software delivery" moment. 🏆
 [ ] ✔️ Manual prod deploy shows "Waiting for approval" and completes on approval
 [ ] ✔️ git tag v1.0.0 → push → prod deploy requested → approved → live
 [ ] ✔️ Prod app running at http://<PROD_IP>:8080
-[ ] ✔️ Screenshot saved as docs/screenshots/08-production-deploy.png
+[ ] ✔️ Screenshot saved as docs/screenshots/11-production-deploy.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 9 — Rollback & Deployment Strategies](09-rollback-and-deployment-strategies.md)
+➡️ **Next:** [Milestone 12 — Rollback & Deployment Strategies](12-rollback-and-deployment-strategies.md)

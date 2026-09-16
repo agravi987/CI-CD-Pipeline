@@ -45,7 +45,7 @@ feature ──●─── commits ────────●─── feature/
 | "Code reached `main`" | `push` to `main` | CI runs again, then CD *deploys* |
 
 Three events, one idea: **the pipeline reacts to GitHub events**. You'll write
-these as the `on:` block in Milestone 3.
+these as the `on:` block in Milestone 6.
 
 ---
 
@@ -67,7 +67,7 @@ git branch -M main
 git push -u origin main
 ```
 
-Now make your first feature branch (you'll ruin it later in Milestone 3 — that's the point):
+Now make your first feature branch (you'll ruin it later in Milestone 6 — that's the point):
 
 ```powershell
 git checkout -b feature/hello
@@ -79,7 +79,7 @@ git push -u origin feature/hello
 
 Open the repo on GitHub 👉 you'll see your new branch and a friendly
 **"Compare & pull request"** button. Click it, add a title, create the PR.
-Do **not** merge yet — the CI (Milestone 3) has to run on it first.
+Do **not** merge yet — the CI (Milestone 6) has to run on it first.
 
 > 📸 **Proof of work:** saved in **`docs/screenshots/01-git-branching.png`** — your repo's **Insights → Network graph** (or GitHub Desktop history) showing `main` and `feature/hello`, plus your open Pull Request.
 > ![Proof of work — branch graph + PR](screenshots/01-git-branching.png)
@@ -93,9 +93,9 @@ Do **not** merge yet — the CI (Milestone 3) has to run on it first.
 2. code, commit, commit, commit       small commits, clear messages
 3. git push -u origin feature/xyz     share the branch
 4. open a PR on GitHub                request review
-5. CI runs on the PR                  ← Milestones 3-4
+5. CI runs on the PR                  ← Milestones 6-7
 6. fix whatever CI flags              push again → PR updates
-7. merge to main                      ← CD deploys (Milestones 7-8)
+7. merge to main                      ← CD deploys (Milestones 10-11)
 ```
 
 ---
@@ -122,4 +122,13 @@ Do **not** merge yet — the CI (Milestone 3) has to run on it first.
 
 ---
 
-➡️ **Next:** [Milestone 2 — Make the App Testable](02-make-the-app-testable.md)
+## ➡️ Where to next?
+
+**Option 1 — using the app that comes with this repo** (skip the app-building):
+jump ahead and start wiring up the pipeline:
+
+🔀→ [Milestone 5 — Make the App Testable](05-make-the-app-testable.md)
+
+**Option 2 — build the app yourself from scratch** (then hit the pipeline):
+
+🎨→ [Milestone 2 — Build the Frontend (React)](02-build-the-app-frontend.md)

@@ -1,4 +1,4 @@
-# 🛡️ Milestone 10 — Quality Gates: Branch Protection
+# 🛡️ Milestone 13 — Quality Gates: Branch Protection
 
 ## 🎯 Goal
 
@@ -54,8 +54,8 @@ Watch the magic: open a junk PR (e.g. break a test deliberately), notice the
 merge button is grayed out with "**Checks Failed**". Fix it, checks re-run,
 button turns green. 🤖✅
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/10-branch-protection.png`** — the branch protection rules screen for `main` with status checks + required reviews visible.
-> ![Proof of work — branch protection](screenshots/10-branch-protection.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/13-branch-protection.png`** — the branch protection rules screen for `main` with status checks + required reviews visible.
+> ![Proof of work — branch protection](screenshots/13-branch-protection.png)
 
 ---
 
@@ -159,9 +159,9 @@ deploys. 🏗️
 [ ] ✔️ A deliberately-broken PR is blocked from merging
 [ ] ✔️ README shows the live CI badge
 [ ] ✔️ Dependabot enabled for npm + GitHub Actions
-[ ] ✔️ Screenshot saved as docs/screenshots/10-branch-protection.png
+[ ] ✔️ Screenshot saved as docs/screenshots/13-branch-protection.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 11 — The Final Pipeline & Portfolio Story](11-final-pipeline-and-portfolio-story.md)
+➡️ **Next:** [Milestone 14 — The Final Pipeline & Portfolio Story](14-final-pipeline-and-portfolio-story.md)

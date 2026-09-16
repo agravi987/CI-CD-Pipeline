@@ -1,4 +1,4 @@
-# 🧪 Milestone 2 — Make the App Testable
+# 🧪 Milestone 5 — Make the App Testable
 
 ## 🎯 Goal
 
@@ -120,8 +120,8 @@ docker rm -f test-all-db
 
 The integration tests prove the whole stack: **API → route → query → Postgres → back**.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/02-local-tests.png`** — terminal showing `npm test` with **6 pass, 0 fail** against the Postgres container.
-> ![Proof of work — all tests passing](screenshots/02-local-tests.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/05-local-tests.png`** — terminal showing `npm test` with **6 pass, 0 fail** against the Postgres container.
+> ![Proof of work — all tests passing](screenshots/05-local-tests.png)
 
 ---
 
@@ -143,9 +143,9 @@ The integration tests prove the whole stack: **API → route → query → Postg
 [ ] ✔️ npm test passes all 6 tests against a Postgres container
 [ ] ✔️ You can explain: app.js vs index.js (why both exist)
 [ ] ✔️ You can explain: why DB tests skip when DB_HOST is unset
-[ ] ✔️ Screenshot saved as docs/screenshots/02-local-tests.png
+[ ] ✔️ Screenshot saved as docs/screenshots/05-local-tests.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 3 — Your First Workflow](03-your-first-workflow.md)
+➡️ **Next:** [Milestone 6 — Your First Workflow](06-your-first-workflow.md)

@@ -79,25 +79,39 @@ nothing deploys                   auto-deploys                      deploys ONLY
 
 ---
 
-## 📚 The 11 Milestones
+## 📚 The 14 Milestones
 
-Follow them **in order**. Each one builds on the previous, has runnable commands, and ends with a checkpoint.
+Pick your path first — both start at Milestone 1 and converge at Milestone 5.
 
-| # | 🏁 Milestone | ⏱️ |
-|---|--------------|-----|
-| 1 | [Setup, Git Branching & Pull Requests](docs/01-setup-git-branching-and-pull-requests.md) | ~30 min |
-| 2 | [Make the App Testable](docs/02-make-the-app-testable.md) | ~35 min |
-| 3 | [Your First Workflow](docs/03-your-first-workflow.md) | ~40 min |
-| 4 | [The Full CI Pipeline — Build & Security Scan](docs/04-the-full-ci-pipeline.md) | ~40 min |
-| 5 | [Container Registry — Push Images to GHCR](docs/05-container-registry-push-to-ghcr.md) | ~30 min |
-| 6 | [Environments, Secrets & Variables](docs/06-environments-secrets-and-variables.md) | ~30 min |
-| 7 | [Deploy to Staging (CD)](docs/07-deploy-to-staging.md) | ~45 min |
-| 8 | [Deploy to Production](docs/08-deploy-to-production.md) | ~40 min |
-| 9 | [Rollback & Deployment Strategies](docs/09-rollback-and-deployment-strategies.md) | ~35 min |
-| 10 | [Quality Gates — Branch Protection, Badges & Alerts](docs/10-quality-gates-branch-protection.md) | ~30 min |
-| 11 | [The Final Pipeline & Portfolio Story](docs/11-final-pipeline-and-portfolio-story.md) | ~25 min |
+### 🅰️ Option 1 — Use the included app (fastest)
 
-**Total: ~6 hours** of hands-on building. Every milestone ends with a checkpoint and a screenshot.
+The app is already in `ci-cd-pipeline-app/` (Project 2's result). Do
+**M1 → skip M2–4 → M5 … M14**. Total: **~6 hours**.
+
+### 🅱️ Option 2 — Build the app yourself too (full journey)
+
+Milestones **2–4** teach you to build the frontend, backend + database, and
+containerize them before the CI/CD part starts. Do **M1 → M14** in order.
+Total: **~8.5 hours**.
+
+| # | 🏁 Milestone | ⏱️ | Path |
+|---|--------------|-----|------|
+| 1 | [Setup, Git Branching & Pull Requests](docs/01-setup-git-branching-and-pull-requests.md) | ~30 min | both |
+| 2 | [Build the Frontend (React)](docs/02-build-the-app-frontend.md) | ~40 min | 🅱️ |
+| 3 | [Build the Backend & Database](docs/03-build-the-app-backend.md) | ~45 min | 🅱️ |
+| 4 | [Containerize & Docker Compose](docs/04-containerize-with-docker.md) | ~45 min | 🅱️ |
+| 5 | [Make the App Testable](docs/05-make-the-app-testable.md) | ~35 min | both |
+| 6 | [Your First Workflow](docs/06-your-first-workflow.md) | ~40 min | both |
+| 7 | [The Full CI Pipeline](docs/07-the-full-ci-pipeline.md) | ~40 min | both |
+| 8 | [Container Registry — Push to GHCR](docs/08-container-registry-push-to-ghcr.md) | ~30 min | both |
+| 9 | [Environments, Secrets & Variables](docs/09-environments-secrets-and-variables.md) | ~30 min | both |
+| 10 | [Deploy to Staging (CD)](docs/10-deploy-to-staging.md) | ~45 min | both |
+| 11 | [Deploy to Production](docs/11-deploy-to-production.md) | ~40 min | both |
+| 12 | [Rollback & Deployment Strategies](docs/12-rollback-and-deployment-strategies.md) | ~35 min | both |
+| 13 | [Quality Gates — Branch Protection, Badges & Alerts](docs/13-quality-gates-branch-protection.md) | ~30 min | both |
+| 14 | [The Final Pipeline & Portfolio Story](docs/14-final-pipeline-and-portfolio-story.md) | ~25 min | both |
+
+Every milestone ends with a checkpoint and a screenshot.
 
 > 📸 **Proof of Work:** each milestone has a screenshot placeholder embedded
 > inline at the step it proves, in [`docs/screenshots/`](docs/screenshots/).
@@ -106,7 +120,7 @@ Follow them **in order**. Each one builds on the previous, has runnable commands
 
 ---
 
-## 🚀 Quick Start (After Milestone 3)
+## 🚀 Quick Start (After Milestone 6)
 
 ```bash
 # 1. Create your GitHub repo (empty, no README)
@@ -119,7 +133,7 @@ git remote add origin https://github.com/<YOU>/<REPO>.git
 git push -u origin main
 
 # 3. Open the repo → Actions tab → the CI run starts automatically
-#    (Milestone 3 explains every colored box you'll see)
+#    (Milestone 6 explains every colored box you'll see)
 ```
 
 Watch a push become a deploy, end to end:
@@ -135,31 +149,32 @@ git push → CI runs → tests pass → images build & scan → GHCR → staging
 ```
 CI-CD Pipeline/
 ├── README.md                  ← You are here
-├── docs/                      ← The 11-part step-by-step milestone guide
+├── docs/                      ← The 14-part step-by-step milestone guide (two paths inside)
+│   ├── 01-…-14-….md               M1–M14: build the app (M2–M4, Option 2) → pipeline (M5–M14)
 │   └── screenshots/           ← Replace placeholder images with proof
 └── ci-cd-pipeline-app/        ← The app + the pipeline that ships it
     ├── .github/workflows/     ← THE PIPELINE (all YAML)
-    │   ├── ci.yml                 lint + test + build app/images + Trivy
-    │   ├── build-and-push.yml     tags + pushes images to GHCR
-    │   ├── deploy-staging.yml     SSH deploy to staging + health check
-    │   ├── deploy-production.yml  SSH deploy to prod (approval-gated)
-    │   └── rollback.yml           one-click rollback to any image tag
-    ├── backend/               ← Express API (reused from Project 2) + tests
+    │   ├── ci.yml                 lint + test + build app/images + Trivy       (M6, M7)
+    │   ├── build-and-push.yml     tags + pushes images to GHCR                 (M8)
+    │   ├── deploy-staging.yml     SSH deploy to staging + health check         (M10)
+    │   ├── deploy-production.yml  SSH deploy to prod (approval-gated)          (M11)
+    │   └── rollback.yml           one-click rollback to any image tag          (M12)
+    ├── backend/               ← Express API (built in M3 / started from Project 2 in Option 1) + tests
     │   └── src/
-    │       ├── app.js         ← the Express app (exported for tests)
-    │       ├── index.js       ← entry point (starts the server)
-    │       ├── db.js
-    │       ├── app.test.js    ← unit tests (no database needed)
-    │       └── db.test.js     ← integration tests (use Postgres)
-    ├── frontend/              ← React + Nginx (reused from Project 2)
+    │       ├── app.js         ← the Express app (exported for tests)           (M3/M5)
+    │       ├── index.js       ← entry point (starts the server)                (M3/M5)
+    │       ├── db.js                                                           (M3)
+    │       ├── app.test.js    ← unit tests (no database needed)                (M5)
+    │       └── db.test.js     ← integration tests (use Postgres)               (M5)
+    ├── frontend/              ← React + Nginx (built in M2 / reused in Option 1) (M2, M4)
     ├── database/
-    │   └── init.sql
+    │   └── init.sql                                                             (M3/M4)
     ├── deploy/                ← what runs ON the servers
-    │   ├── docker-compose.prod.yml   ← pulls images from GHCR
-    │   └── deploy.sh                 ← pull → up → health check → prune
-    ├── docker-compose.yml
-    ├── docker-compose.dev.yml
-    └── .env.example
+    │   ├── docker-compose.prod.yml   ← pulls images from GHCR                  (M10)
+    │   └── deploy.sh                 ← pull → up → health check → prune        (M10)
+    ├── docker-compose.yml                                                        (M4)
+    ├── docker-compose.dev.yml                                                    (M4)
+    └── .env.example                                                              (M4)
 ```
 
 ---

@@ -1,8 +1,8 @@
-# ⚙️ Milestone 3 — Your First Workflow
+# ⚙️ Milestone 6 — Your First Workflow
 
 ## 🎯 Goal
 
-Take the tests from Milestone 2 and make **GitHub run them for you on every
+Take the tests from Milestone 5 and make **GitHub run them for you on every
 push and every PR**. This is your first taste of the CI half of CI/CD.
 
 ---
@@ -42,7 +42,7 @@ on:
 ```
 
 Why both? A PR workflow run is a **"check"** GitHub attaches to the PR — it can
-block the merge button later (Milestone 10). The `push` run covers branches
+block the merge button later (Milestone 13). The `push` run covers branches
 without a PR.
 
 ---
@@ -103,11 +103,11 @@ jobs:
 
 | Line | What it does |
 |------|--------------|
-| `services: postgres:` | Boots a **Postgres container on the runner** (like your Milestone 2 docker run) |
+| `services: postgres:` | Boots a **Postgres container on the runner** (like your Milestone 5 docker run) |
 | `env: DB_HOST: localhost` | Points your tests at that Postgres — now the DB tests are *not* skipped |
 | `cache: npm` | Caches `node_modules` between runs → your pipeline gets faster each time |
 
-That whole `services:` block is how your Milestone 2 integration tests go from
+That whole `services:` block is how your Milestone 5 integration tests go from
 "skipped" to "running for real" — automatically, on every push, forever. 🤖
 
 ---
@@ -156,8 +156,8 @@ Open your repo → **Actions** → you'll see the run turn from yellow ⏳ to gr
 Then open the PR you left open in Milestone 1 — **CI is attached to it** and
 running right there. Update the PR branch and watch it start again.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/03-first-workflow.png`** — the Actions page showing both jobs **green**: "Backend — Test" and "Frontend — Lint & Build".
-> ![Proof of work — first green workflow](screenshots/03-first-workflow.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/06-first-workflow.png`** — the Actions page showing both jobs **green**: "Backend — Test" and "Frontend — Lint & Build".
+> ![Proof of work — first green workflow](screenshots/06-first-workflow.png)
 
 ---
 
@@ -179,9 +179,9 @@ running right there. Update the PR branch and watch it start again.
 [ ] ✔️ A push to your branch triggers a green run
 [ ] ✔️ Your open PR shows the CI check running + passing
 [ ] ✔️ You can name: workflow, job, step, action, on, runs-on
-[ ] ✔️ Screenshot saved as docs/screenshots/03-first-workflow.png
+[ ] ✔️ Screenshot saved as docs/screenshots/06-first-workflow.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 4 — The Full CI Pipeline](04-the-full-ci-pipeline.md)
+➡️ **Next:** [Milestone 7 — The Full CI Pipeline](07-the-full-ci-pipeline.md)

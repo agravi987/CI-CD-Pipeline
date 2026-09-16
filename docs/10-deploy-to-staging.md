@@ -1,4 +1,4 @@
-# 🟠 Milestone 7 — Deploy to Staging (CD)
+# 🟠 Milestone 10 — Deploy to Staging (CD)
 
 ## 🎯 Goal
 
@@ -154,7 +154,7 @@ jobs:
 
 > 🧠 `workflow_call:` lets other workflows (like `build-and-push.yml`) trigger
 > this one automatically after a successful push — you'll wire that in
-> Milestone 8.
+> Milestone 11.
 
 ---
 
@@ -190,8 +190,8 @@ That's your first fully automatic CD. 🎆
 Verify from your browser: `http://<STAGING_IP>:8080` — the app is there, the
 `next commit` you merged is the one running.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/07-staging-deploy.png`** — the Deploy to Staging run showing green + the final `✅ Staging deployed successfully` line, with the server URL in your browser beside it.
-> ![Proof of work — staging deployed](screenshots/07-staging-deploy.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/10-staging-deploy.png`** — the Deploy to Staging run showing green + the final `✅ Staging deployed successfully` line, with the server URL in your browser beside it.
+> ![Proof of work — staging deployed](screenshots/10-staging-deploy.png)
 
 ---
 
@@ -215,9 +215,9 @@ Verify from your browser: `http://<STAGING_IP>:8080` — the app is there, the
 [ ] ✔️ .env exists at /opt/cicd-staging/.env
 [ ] ✔️ Manual deploy run ends with "✅ Staging deployed successfully"
 [ ] ✔️ merge to main → automatic deploy to staging works end-to-end
-[ ] ✔️ Screenshot saved as docs/screenshots/07-staging-deploy.png
+[ ] ✔️ Screenshot saved as docs/screenshots/10-staging-deploy.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 8 — Deploy to Production](08-deploy-to-production.md)
+➡️ **Next:** [Milestone 11 — Deploy to Production](11-deploy-to-production.md)

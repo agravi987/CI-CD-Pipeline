@@ -1,4 +1,4 @@
-# 🗄️ Milestone 5 — Container Registry: Push to GHCR
+# 🗄️ Milestone 8 — Container Registry: Push to GHCR
 
 ## 🎯 Goal
 
@@ -136,7 +136,7 @@ jobs:
           echo "Frontend: ${{ steps.meta.outputs.frontend-tag }}"
 ```
 
-> 🧠 Compare with Milestone 4: identical except `push: true` and real tags.
+> 🧠 Compare with Milestone 7: identical except `push: true` and real tags.
 > That's the CI→registry handoff — build the same way, but *publish*.
 
 ---
@@ -158,8 +158,8 @@ cicd-backend               cicd-frontend
 > **public** via Package → Package settings → "Change visibility" → Public —
 > so the deployment servers (and your portfolio) can pull them without auth.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/05-ghcr-images.png`** — your **Packages** page showing `cicd-backend` and `cicd-frontend` with `latest` + `sha-…` tags.
-> ![Proof of work — GHCR packages](screenshots/05-ghcr-images.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/08-ghcr-images.png`** — your **Packages** page showing `cicd-backend` and `cicd-frontend` with `latest` + `sha-…` tags.
+> ![Proof of work — GHCR packages](screenshots/08-ghcr-images.png)
 
 ---
 
@@ -181,9 +181,9 @@ cicd-backend               cicd-frontend
 [ ] ✔️ Push to main produces ghcr.io images tagged sha-<short> + latest
 [ ] ✔️ Packages visible (made public) for both images
 [ ] ✔️ You can explain why tags = traceability
-[ ] ✔️ Screenshot saved as docs/screenshots/05-ghcr-images.png
+[ ] ✔️ Screenshot saved as docs/screenshots/08-ghcr-images.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 6 — Environments, Secrets & Variables](06-environments-secrets-and-variables.md)
+➡️ **Next:** [Milestone 9 — Environments, Secrets & Variables](09-environments-secrets-and-variables.md)

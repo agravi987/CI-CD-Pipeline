@@ -1,4 +1,4 @@
-# 🔐 Milestone 6 — Environments, Secrets & Variables
+# 🔐 Milestone 9 — Environments, Secrets & Variables
 
 ## 🎯 Goal
 
@@ -84,7 +84,7 @@ these four (secrets are repo-wide so both workflows can use them):
 > `ssh-keygen -t ed25519 -f ~/.ssh/cicd_deploy -C "cicd-deploy"`
 > put the **private** side into the secret (paste the whole file), and the
 > **public** side on the server's `~deploy/.ssh/authorized_keys`.
-> Full server prep happens in Milestone 7 — secrets first, servers later.
+> Full server prep happens in Milestone 10 — secrets first, servers later.
 
 ---
 
@@ -110,8 +110,8 @@ GitHub pings your reviewers. Approve it, it proceeds, then fails on SSH.
 
 That failure is *expected* and actually your proof the gate works.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/06-environments-secrets.png`** — the **Settings → Environments** page showing both environments, with `production`'s "Required reviewers" rule visible.
-> ![Proof of work — environments + protection](screenshots/06-environments-secrets.png)
+> 📸 **Proof of work:** saved in **`docs/screenshots/09-environments-secrets.png`** — the **Settings → Environments** page showing both environments, with `production`'s "Required reviewers" rule visible.
+> ![Proof of work — environments + protection](screenshots/09-environments-secrets.png)
 
 ---
 
@@ -133,9 +133,9 @@ That failure is *expected* and actually your proof the gate works.
 [ ] ✔️ production has Required reviewers + deployment branch v*
 [ ] ✔️ 4 secrets added (staging/prod host + SSH key)
 [ ] ✔️ Manual prod run showed "Waiting for approval" then failed on SSH (expected)
-[ ] ✔️ Screenshot saved as docs/screenshots/06-environments-secrets.png
+[ ] ✔️ Screenshot saved as docs/screenshots/09-environments-secrets.png
 ```
 
 ---
 
-➡️ **Next:** [Milestone 7 — Deploy to Staging (CD)](07-deploy-to-staging.md)
+➡️ **Next:** [Milestone 10 — Deploy to Staging (CD)](10-deploy-to-staging.md)
