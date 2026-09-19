@@ -1,19 +1,39 @@
-name: Rollback Deployment
+# =============================================================================
+# rollback.yml — "Rollback Deployment"
+# =============================================================================
+# 🎯 WHAT THIS FILE DOES (plain English):
+#   Replaces "rollback = undo the code" with the smarter, safer idea:
+#   "rollback = redeploy a KNOWN-GOOD older image tag." Because we tagged every
+#   image by commit SHA + version in Milestone 8, we can always go back.
+#
+#   How it works:
+#     1. A human picks: which environment (staging / production) + which version
+#     2. Only the matching job runs (`if:`), using that environment's secrets
+#     3. SSH to the server → log into GHCR → pull the OLD tag → restart → health check
+#
+#   In one sentence: "one click puts the site back to the last version that
+#   worked." Production rollbacks still need a human approval (by design!). 🔐
+#
+# LINE-BY-LINE: read the `#` comments beside every block below.
+# =============================================================================
+name: Rollback Deployment        # name shown on the Actions page
 
+# WHEN does this workflow fire?
 on:
-  workflow_dispatch:
-    inputs:
+  workflow_dispatch:             # only a human can trigger rollback (never automatic)
+    inputs:                      # the little form you fill in before running
       environment:
         description: "Target environment to rollback"
         required: true
-        type: choice
-        options:
+        type: choice             # a dropdown ...
+        options:                 # ... with these two choices
           - staging
           - production
       version:
         description: "Image tag to rollback to (e.g. v1.2.2, sha-abc1234)"
-        required: true
+        required: true           # you MUST say which version to go back to
 
+# Shared variables
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-backend
@@ -21,16 +41,16 @@ env:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
-  # Job 1 — Rollback staging (only runs when "staging" is picked)
+  # JOB 1 — rollback-staging
+  #   Runs ONLY when the human picked "staging" in the dropdown.
   # ─────────────────────────────────────────────────────────────────────────
   rollback-staging:
     name: "Rollback Staging"
-    if: github.event.inputs.environment == 'staging'
+    if: github.event.inputs.environment == 'staging'   # the `if:` filter
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - uses: actions/checkout@v4
-
       - name: Rollback via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -38,30 +58,32 @@ jobs:
           username: deploy
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
-            set -e
+            set -e                            # stop at the first failing command
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /opt/cicd-staging
+            # put the CHOSEN version into the compose placeholders
             export GHCR_OWNER=${{ github.repository_owner }}
             export BACKEND_IMAGE_TAG=${{ github.event.inputs.version }}
             export FRONTEND_IMAGE_TAG=${{ github.event.inputs.version }}
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml pull                        # get the old images
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans      # restart with them
             sleep 10
-            curl -sf http://localhost:8080/api/health || { echo "❌ Health check failed"; exit 1; }
+            curl -sf http://localhost:8080/api/health || { echo "❌ Health check failed"; exit 1; }   # prove it's alive
             docker image prune -f
             echo "✅ Staging rolled back to ${{ github.event.inputs.version }}"
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Job 2 — Rollback production (only runs when "production" is picked)
+  # JOB 2 — rollback-production
+  #   Runs ONLY when the human picked "production" (also waits for approval
+  #   because of the `environment: production` gate from Milestone 9).
   # ─────────────────────────────────────────────────────────────────────────
   rollback-production:
     name: "Rollback Production"
     if: github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
-    environment: production
+    environment: production      # approval gate applies here too
     steps:
       - uses: actions/checkout@v4
-
       - name: Rollback via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -82,11 +104,15 @@ jobs:
             docker image prune -f
             echo "✅ Production rolled back to ${{ github.event.inputs.version }}"
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 3 — summary
+  #   Always prints a result summary, no matter which job actually ran.
+  # ─────────────────────────────────────────────────────────────────────────
   summary:
     name: "Rollback Summary"
     runs-on: ubuntu-latest
     needs: [rollback-staging, rollback-production]
-    if: always()
+    if: always()                # run even if one of the rollback jobs failed
     steps:
       - name: Print summary
         run: |

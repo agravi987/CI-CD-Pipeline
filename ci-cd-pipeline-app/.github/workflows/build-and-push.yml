@@ -1,61 +1,87 @@
-name: Build & Push Images to GHCR
+# =============================================================================
+# build-and-push.yml — "Build & Push Images to GHCR"
+# =============================================================================
+# 🎯 WHAT THIS FILE DOES (plain English):
+#   Whenever code lands on `main` (or a version tag like `v1.2.3` is pushed),
+#   this workflow:
+#     1. Builds the backend + frontend Docker images
+#     2. Pushes them to GHCR (GitHub Container Registry) so servers can pull them
+#     3. Prints the tag names used
+#     4. Kicks off the deploy workflow (staging for main, production for tags)
+#
+#   Confusing words decoded:
+#    - "tag"   = a label on the image telling you WHICH commit it came from
+#    - "push"  = upload the image to a registry (like `git push` but for images)
+#    - "GHCR"  = GitHub Container Registry = a free place GitHub stores your images
+#
+# LINE-BY-LINE: read the `#` comments beside every block below.
+# =============================================================================
+name: Build & Push Images to GHCR   # name shown on the Actions page
 
+# WHEN does this workflow fire?
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
-  workflow_dispatch:
+  push:                        # on a `git push` ...
+    branches: [main]           #   ...to the main branch
+    tags: ["v*"]               #   ...or a tag starting with "v" (e.g. v1.2.3)
+  workflow_dispatch:           # ...or a human clicks "Run workflow" in the UI
 
+# Shared variables used by every job in this file
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: ghcr.io                                                 # registry address
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-frontend
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 1 — build-push
+  #   The main event: build images, tag them, log into GHCR, upload them.
+  # ─────────────────────────────────────────────────────────────────────────
   build-push:
     name: "Build & Push to GHCR"
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
-    outputs:
-      backend-tag: ${{ steps.meta.outputs.backend-tag }}
+      contents: read          #   can read repo files
+      packages: write         #   ⭐ REQUIRED — lets us WRITE images to GHCR
+    outputs:                  #   "outputs" = values we hand to later jobs
+      backend-tag: ${{ steps.meta.outputs.backend-tag }}    # the exact tags used
       frontend-tag: ${{ steps.meta.outputs.frontend-tag }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v4            # download the repo code
+      - uses: docker/setup-buildx-action@v3  # enable modern Docker image building
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3         # authenticate to the registry
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.actor }}      # GitHub already knows who we are
+          password: ${{ secrets.GITHUB_TOKEN }}  # auto-generated secret — no password stored!
 
       - name: Set image tags
-        id: meta
+        id: meta                            # `id:` lets OTHER steps read this step's output
         run: |
-          SHA_SHORT="${GITHUB_SHA::7}"
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            TAG="${GITHUB_REF#refs/tags/}"
+          SHA_SHORT="${GITHUB_SHA::7}"      # first 7 characters of the commit (e.g. abc1234)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then   # were we triggered by a version tag?
+            TAG="${GITHUB_REF#refs/tags/}"  # extract "v1.2.3" from refs/tags/v1.2.3
+            # a release → label the image with BOTH the version, the sha, and latest
             BACKEND_TAGS="${BACKEND_IMAGE}:${TAG},${BACKEND_IMAGE}:sha-${SHA_SHORT},${BACKEND_IMAGE}:latest"
             FRONTEND_TAGS="${FRONTEND_IMAGE}:${TAG},${FRONTEND_IMAGE}:sha-${SHA_SHORT},${FRONTEND_IMAGE}:latest"
           else
+            # just a push to main → label with the sha and latest only
             BACKEND_TAGS="${BACKEND_IMAGE}:sha-${SHA_SHORT},${BACKEND_IMAGE}:latest"
             FRONTEND_TAGS="${FRONTEND_IMAGE}:sha-${SHA_SHORT},${FRONTEND_IMAGE}:latest"
           fi
+          # save the computed tag lists to the magic "output" file so later
+          # steps can read them via ${{ steps.meta.outputs.backend-tag }}
           echo "backend-tag=$BACKEND_TAGS" >> "$GITHUB_OUTPUT"
           echo "frontend-tag=$FRONTEND_TAGS" >> "$GITHUB_OUTPUT"
-          echo "SHA_SHORT=$SHA_SHORT" >> "$GITHUB_OUTPUT"
 
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
           context: ci-cd-pipeline-app/backend
           target: runtime
-          push: true
-          tags: ${{ steps.meta.outputs.backend-tag }}
+          push: true                        # ← push:true = UPLOAD to GHCR (was false in CI)
+          tags: ${{ steps.meta.outputs.backend-tag }}   # the tag list we computed above
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -74,21 +100,26 @@ jobs:
           echo "Backend:  ${{ steps.meta.outputs.backend-tag }}"
           echo "Frontend: ${{ steps.meta.outputs.frontend-tag }}"
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 2 — dispatch-deploy
+  #   After the images are safely uploaded, starts the deploy workflow:
+  #     main → deploy-staging.yml      tag → deploy-production.yml
+  # ─────────────────────────────────────────────────────────────────────────
   dispatch-deploy:
     name: "Trigger Deploy"
     runs-on: ubuntu-latest
-    needs: build-push
+    needs: build-push                 # only after images are pushed
     steps:
       - name: Dispatch deploy-staging
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'     # only if this was a push to main
         run: |
-          gh workflow run deploy-staging.yml
+          gh workflow run deploy-staging.yml    # start the staging deploy workflow
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # token that lets `gh` do its job
 
       - name: Dispatch deploy-production
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v')  # only if this was a version tag
         run: |
-          gh workflow run deploy-production.yml
+          gh workflow run deploy-production.yml    # start the production deploy workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

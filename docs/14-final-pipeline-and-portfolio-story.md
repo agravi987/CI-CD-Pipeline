@@ -1,27 +1,27 @@
 # 🏁 Milestone 14 — The Final Pipeline & Portfolio Story
 
-## 🎯 Goal
+## 🎯 Goal (plain English)
 
-Run the **entire pipeline from scratch** — one commit, all the way to a live
-production site — then clean up and package the project as a portfolio piece
-you can talk about for 10 minutes straight. 🎤
+Run the **entire pipeline from scratch** — one commit all the way to a live
+production site — then clean up and package the project as a portfolio piece you
+can talk about for 10 minutes straight. 🎤
 
 ---
 
-## 🧠 First, the whole picture (say it out loud, in order)
+## 🤔 First, the whole picture (say it out loud, in order)
 
-```
+```text
 1  git checkout -b feature/price-widget          ← branch (M1)
 2  code it, commit, push                          ← code (M1)
 3  open PR                                        ← review flow (M1)
 4  CI runs: lint + tests + docker + trivy (M6-7) ← automatic
 5  merge to main                                  ← protected (M13)
 6  build-and-push → GHCR (sha-<hash> tags) (M8)   ← automatic
-7  staging deploy + health check (M10)             ← automatic
+7  staging deploy + health check (M10)            ← automatic
 8  git tag v1.1.0 && push                         ← version (M8/M11)
 9  prod deploy requested                          ← automatic
-10 approval → prod live + health check (M11)       ← human + automatic
-11 something breaks? rollback to v1.0.0 (M12)      ← one click
+10 approval → prod live + health check (M11)      ← human + automatic
+11 something breaks? rollback to v1.0.0 (M12)     ← one click
 ```
 
 Read it again. Your hand did **almost none** of steps 4–10. That's not a demo;
@@ -32,8 +32,7 @@ that's a **software delivery pipeline**. 🚀
 ## 📝 Step 1 — The full end-to-end run (from scratch)
 
 We'll deliberately redo the loop so the portfolio story is *witnessed*, not
-recounted — then film/screenshot the very end (each step below links its
-milestone's proof):
+recounted — then film/screenshot the very end:
 
 ```powershell
 # 1. Feature branch (M1)
@@ -49,7 +48,7 @@ git push -u origin feature/final-demo            # CI auto-runs on push (M6)
 # open the PR on GitHub (M1)
 
 # 4. Wait for CI, merge (M13)
-#    merge button only unlocks when "CI — Lint, Test, Build & Scan" is green
+#    the merge button unlocks once "CI — Lint, Test, Build & Scan" is green
 
 # 5. Watch the chain fire by itself (M8 + M10)
 #    main push → build-and-push → GHCR → deploy-staging → health check
@@ -62,11 +61,14 @@ git tag v1.1.0 && git push origin v1.1.0
 #    curl http://<PROD_IP>:8080/api/health → {"status":"ok",...}
 ```
 
-If any link in the chain misbehaves, the checkpoint tables in Milestones 6–12
-have the fixes. Fix → re-push → re-watch.
+If any link misbehaves, the checkpoint tables in Milestones 6–12 have the
+fixes. Fix → re-push → re-watch.
 
-> 📸 **Proof of work (THE one):** saved in **`docs/screenshots/14-final-pipeline.png`** — the Actions **workflow runs list** for the release: **[build-and-push] ✅**, **[deploy-staging] ✅**, **[deploy-production] ✅ (after approval)**, plus the terminal `curl` returning `{"status":"ok",...}`. This one image is your whole project.
-> ![Proof of work — final end-to-end pipeline](screenshots/14-final-pipeline.png)
+> 📸 **Proof of work (THE one):** save **`docs/screenshots/14-final-pipeline.png`**
+> — the Actions **workflow runs list** for the release: **[build-and-push] ✅**,
+> **[deploy-staging] ✅**, **[deploy-production] ✅ (after approval)**, plus the
+> terminal `curl` returning `{"status":"ok",...}`. This one image is the whole
+> project.
 
 ---
 
@@ -74,23 +76,24 @@ have the fixes. Fix → re-push → re-watch.
 
 | Check | Do |
 |-------|----|
-| Secrets | Never committed. `grep -r "password\|BEGIN.*PRIVATE KEY" .` should find nothing in the repo. |
-| `.env` | In `.gitignore` AND `.dockerignore` (from Project 2 — verify). |
-| SBOMs | Were uploaded on the last CI runs; the registry also shows them. |
-| Branch rules | Still enforced after all the capers above? Settings → Branches → verify. |
-| Costs | GitHub Actions: free minutes ✅ · GHCR: free ✅ · 2 tiny servers: the only cost (kill them after screenshots if you like). |
+| Secrets | Never committed. `grep -r "password\|BEGIN.*PRIVATE KEY" .` should find nothing. |
+| `.env` | In `.gitignore` AND `.dockerignore` (verify from M4). |
+| SBOMs | Uploaded on the last CI runs; the registry also lists them. |
+| Branch rules | Still enforced after all the capers? **Settings → Branches → verify.** |
+| Costs | Actions: free minutes ✅ · GHCR: free ✅ · 2 tiny servers: the only cost (kill them after the screenshots if you like) |
 
 ---
 
 ## 📝 Step 3 — The 12-second portfolio pitch
 
-> *"I built a CI/CD pipeline for a full-stack Dockerized app. GitHub Actions runs
-> lint, unit + integration tests, builds Docker images, scans them with Trivy,
-> and pushes SBOMs. Images go to GHCR tagged by commit and version. Merges to
-> main auto-deploy to staging behind SSH with a health check; production only
-> deploys from a release tag after a human approves it — and I have a one-click
-> rollback to any previous image. Branch protection means broken code can't
-> reach main, and every dependency gets security-reviewed by Dependabot."*
+> *"I built a CI/CD pipeline for a full-stack Dockerized app. GitHub Actions
+> runs lint, unit + integration tests, builds Docker images, scans them with
+> Trivy, and pushes SBOMs. Images go to GHCR tagged by commit and version.
+> Merges to main auto-deploy to staging behind SSH with a health check;
+> production only deploys from a release tag after a human approves it — and I
+> have a one-click rollback to any previous image. Branch protection means
+> broken code can't reach main, and every dependency gets security-reviewed by
+> Dependabot."*
 
 22 seconds. No buzzwords you can't demo. Every clause = a screenshot you own. 🏆
 
@@ -98,11 +101,11 @@ have the fixes. Fix → re-push → re-watch.
 
 | If asked… | Your answer |
 |-----------|-------------|
-| "Why did you use GitHub Actions?" | Native events (`pull_request`, `release`), free minutes, and the `GITHUB_TOKEN` — zero extra credential plumbing. |
-| "CI vs CD?" | CI proves the code (lint/test/build/scan) before merge; CD ships the verified artifact and checks it came back healthy. |
+| "Why GitHub Actions?" | Native events (`pull_request`, `release`), free minutes, and `GITHUB_TOKEN` — zero extra credential plumbing. |
+| "CI vs CD?" | CI proves the code (lint/test/build/scan) before merge; CD ships the verified artifact and health-checks it came back alive. |
 | "How do you version images?" | Every image is `sha-<commit>`; releases also get `vX.Y.Z`; `latest` is only ever the newest `main`. |
-| "How do you roll back?" | Redeploy a known-good tag via `rollback.yml` — I never "undo" the git history, I serve the last-known-good artifact. |
-| "What would you do next?" | Blue/green zero-downtime swap; add end-to-end browser tests; wire a Slack/Discord alert to the failure path; move servers behind a load balancer. |
+| "How do you roll back?" | Redeploy a known-good tag via `rollback.yml` — I never "undo" git history, I serve the last-known-good artifact. |
+| "What next?" | Blue/green zero-downtime swap; end-to-end browser tests; Slack/Discord alerts on the failure path; servers behind a load balancer. |
 
 ---
 

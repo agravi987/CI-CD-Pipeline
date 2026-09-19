@@ -1,79 +1,78 @@
 # 🏗️ Milestone 7 — The Full CI Pipeline
 
-## 🎯 Goal
+## 🎯 Goal (plain English)
 
-Turn CI from "tests pass" into a real gate: **build the Docker images**, scan
-them for vulnerabilities with **Trivy**, and produce **SBOMs** — proof of what's
-inside every image. If a critical vulnerability is found, the pipeline fails.
+Upgrade CI from "tests pass" to a real **gate**: build the Docker images,
+security-scan them with **Trivy**, and produce **SBOMs** (a full inventory of
+everything inside each image). If a critical vulnerability is found → the
+pipeline **fails**.
 
 ---
 
-## 🧠 The shape of proven code
-
-By the end of this milestone CI proves all of these before anyone can merge:
+## 🤔 What CI now proves (before anyone can merge)
 
 | Stage | Proves | Tool |
 |-------|--------|------|
-| Lint | code style is consistent | ESLint |
-| Unit tests | the logic works (no DB) | `node --test` |
-| Integration tests | it works with a real DB | `node --test` + Postgres service |
-| Frontend build | the SPA actually compiles | Vite |
-| **Docker build** | **the images are buildable** | Buildx |
-| **Security scan** | **no critical/high vulnerabilities** | Trivy |
-| **SBOM** | **a full inventory of every package** | Trivy (CycloneDX) |
+| Lint | Code style is consistent | ESLint |
+| Unit tests | The logic works (no DB) | `node --test` |
+| Integration tests | It works with a real DB | `node --test` + Postgres service |
+| Frontend build | The SPA actually compiles | Vite |
+| **Docker build** | **The images are buildable** | Buildx |
+| **Security scan** | **No critical/high vulnerabilities** | Trivy |
+| **SBOM** | **A full inventory of every package** | Trivy (CycloneDX) |
 
-The last three are what "production-ready pipeline" means. Let's add them.
+The last three are what make a pipeline "production-ready."
 
 ---
 
 ## 📝 Step 1 — Add the third job to `ci.yml`
 
-Append a third job. It **depends on** the first two (`needs:`), so images are
-only built after tests and builds pass — no point scanning a broken artifact:
+> 📖 **Open `ci-cd-pipeline-app/.github/workflows/ci.yml` — it's fully
+> commented line by line.** The steps below explain the ideas behind the file.
+
+The third job **depends on** the first two via `needs:` — images are only built
+*after* tests/builds pass. No point scanning a broken artifact:
 
 ```yaml
   docker-build-scan:
     name: "Docker — Build & Security Scan"
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-lint-build]
+    needs: [backend-tests, frontend-lint-build]   # gate 1
     permissions:
       contents: read
       security-events: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Build backend image
         uses: docker/build-push-action@v6
         with:
-          context: ci-cd-pipeline-app/backend
-          target: runtime
-          load: true
-          tags: cicd-backend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
+          context: ci-cd-pipeline-app/backend      # where the Dockerfile lives
+          target: runtime                          # build the "runtime" stage
+          load: true                               # keep it on the runner (for scanning)
+          tags: cicd-backend:ci                    # temporary name:tag
+          cache-from: type=gha                     # reuse cached layers → faster runs
+          cache-to: type=gha,mode=max              # store new layers in the cache
       - name: Build frontend image
         uses: docker/build-push-action@v6
         with:
           context: ci-cd-pipeline-app/frontend
-          target: serve
+          target: serve                            # the nginx "serve" stage
           load: true
           tags: cicd-frontend:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 ```
 
-### Decoding the action
+### Decoding the action options
 
 | Option | Meaning |
 |--------|---------|
-| `context:` | Where the Dockerfile lives (`backend/`, `frontend/`) |
-| `target: runtime` / `serve` | The exact production stages from Project 2 🐳 |
+| `context:` | Which folder contains the Dockerfile (`backend/`, `frontend/`) |
+| `target: runtime` / `serve` | Build only the production stage (from Milestone 4) |
 | `load: true` | Load the image into the runner so Trivy can scan it |
-| `cache-from/to: type=gha` | Share image layers across runs via GitHub Actions cache → your second run is 5–10× faster ⚡ |
+| `cache-from/to: type=gha` | Share image layers across runs via GitHub cache → 2nd run is often 5–10× faster ⚡ |
 
 ---
 
@@ -81,55 +80,37 @@ only built after tests and builds pass — no point scanning a broken artifact:
 
 ```yaml
       - name: Trivy scan — backend
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.28.0     # the security scanner
         with:
-          image-ref: cicd-backend:ci
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: 1
-          ignore-unfixed: true
-
-      - name: Trivy scan — frontend
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: cicd-frontend:ci
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: 1
-          ignore-unfixed: true
+          image-ref: cicd-backend:ci               # scan the image we made
+          format: table                            # print as a table
+          severity: CRITICAL,HIGH                  # only the worst two levels
+          exit-code: 1                             # ⛔ fail if anyone finds a problem
+          ignore-unfixed: true                     # ignore CVEs with no fix yet
 ```
-
-### Why these settings
 
 | Setting | What it does | Why |
 |---------|--------------|-----|
-| `severity: CRITICAL,HIGH` | Only fail on the worst classes | Medium/low: log for review, don't block |
-| `exit-code: 1` | **Fail the job if vulns found** | The gate — red build = don't merge |
-| `ignore-unfixed: true` | Ignore CVEs with no fix yet | Don't block on things nobody can patch |
+| `severity: CRITICAL,HIGH` | Only fail on the worst classes | Medium/low → log for review, don't block |
+| `exit-code: 1` | **Fail the job if vulns are found** | The gate — red build = don't merge |
+| `ignore-unfixed: true` | Ignore CVEs nobody can patch yet | Don't block on things you can't fix |
 
-> 🧠 A Trivy scan of a Node image checks the **OS packages AND all your npm
-> dependencies** against vulnerability databases — it finds the same holes
-> `npm audit` finds, plus OS-level ones.
+> 🧠 A Trivy scan of a Node image checks **OS packages AND all your npm
+> dependencies** against vulnerability databases — the same holes `npm audit`
+> finds, plus OS-level ones.
 
 ---
 
-## 📝 Step 3 — Save SBOMs and upload them as artifacts
+## 📝 Step 3 — Save SBOMs and upload them
 
 ```yaml
       - name: Save Trivy SBOM — backend
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: cicd-backend:ci
-          format: cyclonedx
-          output: sbom-backend.json
-
-      - name: Save Trivy SBOM — frontend
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: cicd-frontend:ci
-          format: cyclonedx
-          output: sbom-frontend.json
-
+          format: cyclonedx                         # SBOM = package inventory
+          output: sbom-backend.json                 # save to a file
+      ...
       - name: Upload SBOMs as artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -137,9 +118,9 @@ only built after tests and builds pass — no point scanning a broken artifact:
           path: sbom-*.json
 ```
 
-> **SBOM = Software Bill of Materials.** A machine-readable inventory of every
-> package inside each image. Regulators, auditors and security teams ask for
-> these. You'll have them, auto-generated, on every run. 📋
+> **SBOM = Software Bill of Materials.** A machine-readable list of every package
+> inside each image. Security teams and auditors ask for these — you'll have
+> them auto-generated on every run. 📋
 
 ---
 
@@ -152,11 +133,11 @@ only built after tests and builds pass — no point scanning a broken artifact:
     needs: [backend-tests, frontend-lint-build, docker-build-scan]
     steps:
       - name: All checks passed
-        run: echo "✅ CI pipeline completed successfully — lint, tests, build, security scan all green."
+        run: echo "✅ CI pipeline completed successfully"
 ```
 
-This job can't run until *every other job* succeeds — it's your pipeline's
-"all green" crown. When it's green, the code is ready to ship. 🎖️
+This job can't run until **every other job** succeeds — it's the "all green"
+crown. When it's green, the code is ready to ship.
 
 ---
 
@@ -168,20 +149,20 @@ git commit -m "ci: full pipeline — docker build, trivy scan, SBOM"
 git push
 ```
 
-On the Actions page now:
+Your Actions page now shows:
 
 ```
 ✓ Backend — Test                  (services: postgres ran too)
 ✓ Frontend — Lint & Build
-✓ Docker — Build & Security Scan   (see the Trivy table in the logs)
+✓ Docker — Build & Security Scan  (see the Trivy table in the logs)
 ✓ CI Passed
 ```
 
 In the run's **Artifacts** tab you'll find `sboms` (two `.json` files). Download
 one and peek — every dependency, with versions. That's your audit trail.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/07-ci-pipeline.png`** — the Actions run showing all **4 jobs green**, with the logs of the Docker job visible in the background.
-> ![Proof of work — full CI pipeline green](screenshots/07-ci-pipeline.png)
+> 📸 **Proof of work:** save **`docs/screenshots/07-ci-pipeline.png`** — the
+> Actions run showing **4 jobs green**, with the Docker job's logs visible.
 
 ---
 
@@ -189,10 +170,10 @@ one and peek — every dependency, with versions. That's your audit trail.
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| Trivy exits 1 + red step "with issues" | A real CRITICAL/HIGH CVE was found | Fix the dependency (`npm update pkg`) or add an exception with a comment — but then the *gate* is doing its job ✅ |
-| `docker: command not found` | Forgot `setup-buildx` step | The `docker/build-push-action` needs Buildx first |
-| Cached, stale build | `cache-from: type=gha` reused old layers | Normal — that's the point; force with `--no-cache` rarely |
-| SBOMs missing in artifacts | `output:` path wrong | Filenames must match `path: sbom-*.json` in upload step |
+| Trivy exits 1 + red step "with issues" | A real CRITICAL/HIGH CVE was found | Fix the dependency (`npm update <pkg>`), or add a documented exception — the gate is doing its job ✅ |
+| `docker: command not found` | Forgot the `setup-buildx` step | `docker/build-push-action` needs Buildx first |
+| Stale cached build | `cache-from: type=gha` reused old layers | Normal — that's the point; force with `--no-cache` rarely |
+| SBOMs missing in artifacts | `output:` path wrong | Filenames must match `path: sbom-*.json` |
 
 ---
 

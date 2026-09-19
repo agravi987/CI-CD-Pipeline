@@ -1,56 +1,69 @@
+# =============================================================================
+# docker-compose.yml — the main "run everything" recipe
+# =============================================================================
+# 🎯 WHAT THIS FILE DOES (plain English):
+#   The recipe that starts the whole app with ONE command: `docker compose up`.
+#   For DEVELOPMENT ON YOUR LAPTOP it BUILDS the images from local Dockerfiles.
+#   (On servers we use the deploy/docker-compose.prod.yml which only PULLS.)
+#
+#   3 services, each a separate container working together:
+#     db (PostgreSQL) → backend (Node/Express) → frontend (Nginx + React)
+#
+# LINE-BY-LINE: read the `#` comments beside every block below.
+# =============================================================================
 services:
   # ──────────────────────────────────────────────
-  # Database — never exposed to the host
+  # db — the database container
   # ──────────────────────────────────────────────
   db:
-    image: postgres:16-alpine
+    image: postgres:16-alpine          # official Postgres container
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}          # read from your local .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # never hardcode passwords here!
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    healthcheck:
+      - db-data:/var/lib/postgresql/data                              # keep data across restarts
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # create table on first boot
+    healthcheck:                       # "until this passes, don't consider db ready"
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: unless-stopped            # auto-restart if it crashes (unless YOU stop it)
 
   # ──────────────────────────────────────────────
-  # Backend — API, talks to db by service name
+  # backend — the Express API
   # ──────────────────────────────────────────────
   backend:
-    build:
-      context: ./backend
-      target: runtime
+    build:                             # build from a local Dockerfile ...
+      context: ./backend               #   ...in the backend/ folder
+      target: runtime                  #   ...using the "runtime" stage
     environment:
-      DB_HOST: db
+      DB_HOST: db                      # ← service name = DNS name inside this network
       DB_PORT: 5432
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       PORT: 3000
-    depends_on:
+    depends_on:                        # ordering: ...
       db:
-        condition: service_healthy
+        condition: service_healthy     #   ...don't start until Postgres is healthy
     ports:
-      - "3000:3000"
+      - "3000:3000"                    # expose API on host port 3000
     restart: unless-stopped
 
   # ──────────────────────────────────────────────
-  # Frontend — Nginx serves the app + proxies /api
+  # frontend — Nginx serves the React app + forwards /api to backend
   # ──────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
-      target: serve
+      target: serve                    # the nginx "serve" stage (no Node at runtime)
     depends_on:
-      - backend
+      - backend                        # backend should be up first
     ports:
-      - "8080:8080"
+      - "8080:8080"                    # 👈 open your browser here: http://localhost:8080
     restart: unless-stopped
 
 volumes:
-  db-data:
+  db-data:              # named volume where PostgreSQL saves its data

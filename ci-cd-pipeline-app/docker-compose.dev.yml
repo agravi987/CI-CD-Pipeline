@@ -1,31 +1,45 @@
-# Development overrides — merged ON TOP of docker-compose.yml
+# =============================================================================
+# docker-compose.dev.yml — DEVELOPMENT extras (merged ON TOP of docker-compose.yml)
+# =============================================================================
+# 🎯 WHAT THIS FILE DOES (plain English):
+#   docker-compose.yml is the base recipe. This file adds DEV-only changes on
+#   top of it, so the same project can run in two modes:
+#
+#     production-ish : docker compose up            (uses base file's `serve`/`runtime`)
+#     developer      : docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+#   The dev additions: hot-reloading servers, code folders mounted live, and
+#   Postgres exposed to your laptop.
+#
+# LINE-BY-LINE: read the `#` comments beside every block below.
+# =============================================================================
 services:
   backend:
     build:
       context: ./backend
-      target: dev
+      target: dev                      # the big "dev" stage instead of the slim runtime
     environment:
-      NODE_ENV: development
-      CHOKIDAR_USEPOLLING: "true"
+      NODE_ENV: development            # tell Node we're developing
+      CHOKIDAR_USEPOLLING: "true"      # file-watcher fix (works on Windows/Volumes)
     volumes:
-      - ./backend/src:/app/src:ro
-    command: npm run dev
+      - ./backend/src:/app/src:ro      # live-mount your code → edits appear instantly
+    command: npm run dev               # run nodemon (auto-restart on file changes)
     ports:
       - "3000:3000"
 
   frontend:
     build:
       context: ./frontend
-      target: dev
+      target: dev                      # Vite dev server instead of Nginx
     volumes:
-      - ./frontend/src:/app/src:ro
+      - ./frontend/src:/app/src:ro     # live-mount the React source
     ports:
-      - "5173:5173"
+      - "5173:5173"                    # dev server (not 8080!) — port 5173
     environment:
-      VITE_API_PROXY_TARGET: http://backend:3000
+      VITE_API_PROXY_TARGET: http://backend:3000   # where Vite forwards /api calls
       CHOKIDAR_USEPOLLING: "true"
     command: npm run dev -- --host 0.0.0.0
 
   db:
     ports:
-      - "5432:5432"
+      - "5432:5432"                    # dev only: let your laptop reach Postgres directly

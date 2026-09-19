@@ -1,7 +1,21 @@
+// ===========================================================================
+// src/App.jsx — the message wall UI (the whole frontend)
+// ===========================================================================
+// 🎯 WHAT THIS FILE DOES (plain English):
+//   Draws the page and talks to the backend with three API calls:
+//     GET  /api/health   → updates the little status pills
+//     GET  /api/messages → fills the feed with existing messages
+//     POST /api/messages → saves a new message when you press "Post"
+//
+//   The React pattern to remember: `useState` holds UI data, `useEffect`
+//   loads data when the page first shows, every render is a function of state.
+//
+// LINE-BY-LINE: comments mark the important parts; the rest is plain styling.
+// ===========================================================================
 import { useState, useEffect } from "react";
 import "./App.css";
 
-const STACK = [
+const STACK = [   // the tech chips shown in the footer
   { name: "React", icon: "⚛️" },
   { name: "Nginx", icon: "🌐" },
   { name: "Node.js", icon: "⚡" },
@@ -9,6 +23,7 @@ const STACK = [
   { name: "Docker", icon: "🐳" },
 ];
 
+// Turn "John Doe" → "JD" for the little avatar circle
 function initials(name) {
   return name
     .trim()
@@ -18,6 +33,7 @@ function initials(name) {
     .join("");
 }
 
+// Pick a stable color for each name (same name → same color)
 function avatarColor(name) {
   let hash = 0;
   for (const ch of name) {
@@ -26,6 +42,7 @@ function avatarColor(name) {
   return `hsl(${hash} 55% 42%)`;
 }
 
+// Show times as friendly text: "5 minutes ago"
 function timeAgo(iso) {
   const date = new Date(iso);
   const seconds = Math.round((date.getTime() - Date.now()) / 1000);
@@ -50,6 +67,7 @@ function timeAgo(iso) {
   return "just now";
 }
 
+// Full date+time version (shown when you hover a timestamp)
 function absoluteTime(iso) {
   return new Date(iso).toLocaleString(undefined, {
     dateStyle: "medium",
@@ -57,6 +75,7 @@ function absoluteTime(iso) {
   });
 }
 
+// A tiny pill: Frontend · Nginx / Backend · Node / Database · Postgres
 function StatusPill({ label, icon, state }) {
   return (
     <span className={`status-pill ${state}`}>
@@ -69,17 +88,19 @@ function StatusPill({ label, icon, state }) {
 }
 
 export default function App() {
-  const [messages, setMessages] = useState([]);
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-  const [apiStatus, setApiStatus] = useState("checking");
+  // ---- STATE: everything the UI shows, stored in one place each ----
+  const [messages, setMessages] = useState([]);   // the feed items
+  const [name, setName] = useState("");           // "Your name" form field
+  const [message, setMessage] = useState("");     // "Your message" form field
+  const [loading, setLoading] = useState(true);   // skeleton while first load
+  const [sending, setSending] = useState(false);  // disable button while posting
+  const [error, setError] = useState("");         // error banner text ("" = none)
+  const [apiStatus, setApiStatus] = useState("checking"); // ok / down / checking
 
+  // Load messages again (used by the page AND after posting)
   const loadMessages = async () => {
     try {
-      const res = await fetch("/api/messages");
+      const res = await fetch("/api/messages");   // GET the feed
       if (!res.ok) throw new Error(`API returned ${res.status}`);
       setMessages(await res.json());
       setError("");
@@ -88,8 +109,9 @@ export default function App() {
     }
   };
 
+  // ---- EFFECT: runs once, the moment the page appears ----
   useEffect(() => {
-    let active = true;
+    let active = true;   // remember this page is "mounted" (React StrictMode safety)
 
     async function fetchMessages() {
       try {
@@ -104,13 +126,13 @@ export default function App() {
         if (active)
           setError("Could not reach the API. Is the backend running?");
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoading(false);   // hide the skeleton either way
       }
     }
 
     async function fetchHealth() {
       try {
-        const res = await fetch("/api/health");
+        const res = await fetch("/api/health");   // ask the backend "alive?"
         if (active) setApiStatus(res.ok ? "ok" : "down");
       } catch {
         if (active) setApiStatus("down");
@@ -121,24 +143,25 @@ export default function App() {
     fetchHealth();
 
     return () => {
-      active = false;
+      active = false;   // clean up if the page unmounts early
     };
-  }, []);
+  }, []);               // [] = "only run ONCE on first render", not again
 
+  // ---- Submit handler: what happens when you press "Post" ----
   async function handleSubmit(e) {
-    e.preventDefault();
-    if (!name.trim() || !message.trim()) return;
+    e.preventDefault();                       // don't reload the page
+    if (!name.trim() || !message.trim()) return;   // ignore empty posts
     setSending(true);
     try {
       const res = await fetch("/api/messages", {
-        method: "POST",
+        method: "POST",                       // send a NEW message
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, message }),
       });
       if (!res.ok) throw new Error("Request failed");
-      setName("");
+      setName("");                            // clear the form
       setMessage("");
-      await loadMessages();
+      await loadMessages();                   // refresh the feed so it shows up
     } catch {
       setError("Could not send your message.");
     } finally {
@@ -146,7 +169,7 @@ export default function App() {
     }
   }
 
-  const canPost = name.trim() && message.trim() && !sending;
+  const canPost = name.trim() && message.trim() && !sending;  // enable button?
 
   return (
     <div className="app">
@@ -169,6 +192,7 @@ export default function App() {
       </header>
 
       <main>
+        {/* The compose form: name + message + Post button */}
         <form
           className="compose"
           onSubmit={handleSubmit}
@@ -207,6 +231,7 @@ export default function App() {
           </label>
         </form>
 
+        {/* Error banner (shown only when something went wrong) */}
         {error && (
           <div className="banner error" role="alert">
             <span>⚠️ {error}</span>
@@ -220,6 +245,7 @@ export default function App() {
           </div>
         )}
 
+        {/* The feed: skeleton → empty state → messages */}
         <section className="feed">
           <div className="feed-head">
             <h2>Messages</h2>

@@ -1,29 +1,25 @@
 # 🧪 Milestone 5 — Make the App Testable
 
-## 🎯 Goal
+## 🎯 Goal (plain English)
 
-A pipeline has to *check* something, or it's theater. Give the backend real
-**unit tests** (no database) and **integration tests** (with a database), and
-run them locally. This is the code that CI will run on every push from now on.
+Give the backend **real tests** and watch them run locally. This is the code
+CI will run on *every push* from now on — so it has to actually prove the app
+works, not just "it started".
+
+> CI without tests is just "it downloaded dependencies."
 
 ---
 
-## 🧠 Why tests come first
-
-CI without tests is just "it downloaded dependencies." The whole point of
-Continuous Integration is:
-
-> *"the pipeline proves the code works — so reviewers don't have to."*
-
-You're testing the Express API from Project 2. Plan:
+## 🤔 What we're going to test
 
 | Test file | Kind | Needs a database? |
 |-----------|------|-------------------|
 | `backend/src/app.test.js` | Unit — health endpoint, input validation | ❌ No |
-| `backend/src/db.test.js` | Integration — table creation, write + read round-trip | ✅ Yes |
+| `backend/src/db.test.js` | Integration — table creation, write + read | ✅ Yes |
 
-The integration tests **skip automatically** when no database is configured —
-so they pass locally *and* in CI (where CI spins up Postgres). One file, two modes. 🎩
+The clever part: integration tests **skip automatically** when no database is
+configured. So they pass locally *without* a DB, and run for real in CI where
+GitHub spins up Postgres. One file, two modes. 🎩
 
 ---
 
@@ -45,53 +41,65 @@ Expected output (no database configured yet):
 ℹ pass 3  fail 0  skipped 3
 ```
 
-That's it — **3 real tests pass**, 3 integration tests waiting for a database.
+**3 real tests pass**, 3 integration tests waiting for a database.
 
 ---
 
 ## 📝 Step 2 — Look at the two key files
 
-### `src/app.js` — the app, separated from the server
+### `backend/src/db.js` — the "skip trick" lives here
+
+The integration tests decide whether to run based on ONE check:
 
 ```js
-export function createApp() {
+const skip = !process.env.DB_HOST;   // no DB settings? → skip these tests
+test("...", { skip }, async () => { ... });
+```
+
+### `backend/src/app.js` — the app, separated from the server
+
+```js
+export function createApp() {   // builds and RETURNS the app
   const app = express();
-  // ... routes ...
+  // ...routes...
   return app;
 }
 ```
 
-This tiny refactor is what makes testing possible: the tests can build the app
-and start it on a **random port** for themselves. `src/index.js` just calls
-`createApp()` and listens — unchanged behavior in production.
+This tiny refactor is what makes testing possible: tests can build the app and
+start it on a **random port** for themselves (`port 0` = "pick a free one").
+`src/index.js` just calls `createApp()` and listens — production behavior is
+unchanged.
 
-### `src/app.test.js` — unit tests, using built-in `node:test`
+### `backend/src/app.test.js` — unit tests (no Jest/Mocha needed)
 
 ```js
-import { test } from "node:test";
+import { test } from "node:test";            // built into Node 22!
 import assert from "node:assert/strict";
 import { createApp } from "./app.js";
 
 const app = createApp();
-const server = app.listen(0, "127.0.0.1");     // port 0 = "pick a free one"
+const server = app.listen(0, "127.0.0.1");   // port 0 = random free port
 await new Promise((r) => server.once("listening", r));
 
 test("GET /api/health returns ok", async () => {
-  const res = await fetch(`${baseUrl()}/api/health`);
+  const res = await fetch(`${baseUrl()}/api/health`);   // built-in fetch too!
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.status, "ok");
 });
 ```
 
-No Jest, no Mocha, no Chai — **Node 22 ships its own test runner and `fetch`**.
-Zero new dependencies. That's how the whole pipeline stays lean.
+> 🧠 **Zero new dependencies.** Node 22 ships its own test runner (`node
+> --test`) and `fetch`. That keeps the whole pipeline lean.
+
+Both test files are fully commented in the repo — open them and read along.
 
 ---
 
 ## 📝 Step 3 — Run the integration tests for real
 
-The 3 skipped tests need PostgreSQL. Run them with a throwaway container:
+The 3 skipped tests need PostgreSQL. Run them against a throwaway container:
 
 ```powershell
 docker run -d --name test-all-db `
@@ -118,10 +126,11 @@ docker rm -f test-all-db
 ℹ pass 6  fail 0  skipped 0
 ```
 
-The integration tests prove the whole stack: **API → route → query → Postgres → back**.
+The integration tests prove the **whole stack**: API → route → query → Postgres
+→ back.
 
-> 📸 **Proof of work:** saved in **`docs/screenshots/05-local-tests.png`** — terminal showing `npm test` with **6 pass, 0 fail** against the Postgres container.
-> ![Proof of work — all tests passing](screenshots/05-local-tests.png)
+> 📸 **Proof of work:** save **`docs/screenshots/05-local-tests.png`** — terminal
+> showing `npm test` with **6 pass, 0 fail** against the Postgres container.
 
 ---
 
@@ -132,7 +141,7 @@ The integration tests prove the whole stack: **API → route → query → Postg
 | Integration tests all fail, unit tests pass | No DB reachable at `localhost:5432` | Start Postgres in Docker first (Step 3) |
 | `ECONNREFUSED` | The container isn't up yet | Wait 5s, or check `docker ps` |
 | `passenger not listening` | Leftover env vars | `Remove-Item Env:DB_*` then re-run |
-| Port 5432 already in use | Another Postgres is running | Use `-p 5433:5432` and `DB_PORT=5433` |
+| Port 5432 already in use | Another Postgres is running | Use `-p 5433:5432` and set `DB_PORT=5433` |
 
 ---
 

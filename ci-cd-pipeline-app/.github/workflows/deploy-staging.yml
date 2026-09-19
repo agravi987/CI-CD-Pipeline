@@ -1,14 +1,34 @@
-name: Deploy to Staging
+# =============================================================================
+# deploy-staging.yml — "Deploy to Staging"
+# =============================================================================
+# 🎯 WHAT THIS FILE DOES (plain English):
+#   This is the FIRST half of CD (Continuous Delivery). It:
+#     1. Reads the commit we're deploying (its short SHA)
+#     2. Opens a secure SSH connection to your STAGING server
+#     3. Logs the server into GHCR, pulls the exact images for this commit
+#     4. Restarts the containers (`docker compose up -d`)
+#     5. Checks the site is alive via `curl /api/health` — if not, FAILS
+#     6. Cleans up old images on the server
+#
+#   In one sentence: "put the verified app onto the staging server and prove
+#   it woke up." If the health check fails, GitHub shows a red failed run so a
+#   human knows something is wrong. That is a *health-checked deploy*. 🏥
+#
+# LINE-BY-LINE: read the `#` comments beside every block below.
+# =============================================================================
+name: Deploy to Staging          # name shown on the Actions page
 
+# WHEN does this workflow fire?
 on:
-  workflow_dispatch:
-  workflow_call:
-    secrets:
+  workflow_dispatch:             # a human clicked "Run workflow"
+  workflow_call:                 # another workflow asked us to run (build-and-push does this)
+    secrets:                     # the secrets WE REQUIRE from whoever calls us
       STAGING_SSH_KEY:
-        required: true
+        required: true           #   we can't deploy without this SSH key
       STAGING_HOST:
-        required: true
+        required: true           #   and we need to know where the server is
 
+# Shared variables used across this file
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/cicd-backend
@@ -18,53 +38,57 @@ jobs:
   deploy-staging:
     name: "Deploy to Staging"
     runs-on: ubuntu-latest
-    environment: staging
+    environment: staging        # runs "in" the staging environment (linked to its secrets)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4            # download the repo (needed for context)
 
       - name: Set image tags
-        id: tags
+        id: tags                            # later steps read this step's output
         run: |
-          SHA_SHORT="${GITHUB_SHA::7}"
-          echo "backend=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          SHA_SHORT="${GITHUB_SHA::7}"        # first 7 chars of the commit being deployed
+          echo "backend=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"   # e.g. sha-abc1234
           echo "frontend=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1         # THE action that talks to your server
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: deploy
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -e
+          host: ${{ secrets.STAGING_HOST }}   # server address (from Settings → Secrets)
+          username: deploy                    # SSH user on the server
+          key: ${{ secrets.STAGING_SSH_KEY }} # private SSH key (also a secret)
+          script: |                           # ↓ everything below runs ON THE SERVER ↓
+            set -e                            # stop at the FIRST failing command
 
             echo "Logging into GHCR..."
+            # give the server permission to pull our images from GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            cd /opt/cicd-staging
+            cd /opt/cicd-staging              # go to where the app lives on the server
 
             echo "Pulling new images..."
+            # pass the owner + exact tags into the compose file (${...} placeholders)
             export GHCR_OWNER=${{ github.repository_owner }}
             export BACKEND_IMAGE_TAG=${{ steps.tags.outputs.backend }}
             export FRONTEND_IMAGE_TAG=${{ steps.tags.outputs.frontend }}
-            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml pull   # download the exact images
 
             echo "Bringing up new containers..."
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans  # restart app
 
             echo "Waiting for services to stabilize..."
-            sleep 10
+            sleep 10                          # give the app a moment to boot
 
             echo "Running health checks..."
+            # ⭐ THE health check: ask the app "are you alive?" — fail loudly if not
             curl -sf http://localhost:8080/api/health || { echo "❌ Staging health check failed"; exit 1; }
 
             echo "Cleaning old images..."
-            docker image prune -f
+            docker image prune -f             # remove images no longer used (saves disk)
 
             echo "✅ Staging deployed successfully"
 
       - name: Post deploy summary
         run: |
+          # write a tidy summary that shows up at the bottom of the run
           echo "### 🚀 Staging Deploy Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Backend tag:** \`${{ steps.tags.outputs.backend }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Frontend tag:** \`${{ steps.tags.outputs.frontend }}\`" >> $GITHUB_STEP_SUMMARY

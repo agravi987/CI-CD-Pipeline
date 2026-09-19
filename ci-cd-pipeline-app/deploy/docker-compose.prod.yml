@@ -1,43 +1,69 @@
+# =============================================================================
+# docker-compose.prod.yml — the compose file that LIVES on your servers
+# =============================================================================
+# 🎯 WHAT THIS FILE DOES (plain English):
+#   This is the recipe for running the app in PRODUCTION on staging/prod
+#   servers. Unlike the dev compose file we do NOT build images here — the
+#   servers only PULL ready-made images from GHCR. Three services:
+#
+#     db       → PostgreSQL (the database)
+#     backend  → your Node/Express API (pulled from GHCR)
+#     frontend → Nginx serving the React app (pulled from GHCR)
+#
+#   The ${NAME:-default} bits are "placeholders" Docker fills in from env vars
+#   or a .env file on the server.
+#
+# LINE-BY-LINE: read the `#` comments beside every block below.
+# =============================================================================
 services:
+  # ──────────────────────────────────────────────
+  # db — PostgreSQL database
+  # ──────────────────────────────────────────────
   db:
-    image: postgres:16-alpine
+    image: postgres:16-alpine              # official Postgres image
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}      # DB admin user, filled from server .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}   # DB admin password (secret, in .env)
+      POSTGRES_DB: ${POSTGRES_DB}          # the database name
     volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    healthcheck:
+      - db-data:/var/lib/postgresql/data          # hard drive: keeps data across restarts
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # create table on first boot
+    healthcheck:                           # tell Docker when Postgres is truly ready
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
+      interval: 5s                         #   check every 5s
       timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      retries: 5                           #   after 5 good answers, call it healthy
+    restart: unless-stopped                # auto-restart if it ever crashes
 
+  # ──────────────────────────────────────────────
+  # backend — the Express API
+  # ──────────────────────────────────────────────
   backend:
-    image: ghcr.io/${GHCR_OWNER}/cicd-backend:${BACKEND_IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/cicd-backend:${BACKEND_IMAGE_TAG:-latest}  # pulled image
     environment:
-      DB_HOST: db
+      DB_HOST: db                          # talk to "db" by its service name (not localhost!)
       DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}                  # from server .env
+      DB_PASSWORD: ${DB_PASSWORD}          # from server .env (secret)
       DB_NAME: ${DB_NAME}
       PORT: 3000
-    depends_on:
+    depends_on:                            # start ordering ...
       db:
-        condition: service_healthy
+        condition: service_healthy         #   ...wait until Postgres is actually ready
     ports:
-      - "3000:3000"
+      - "3000:3000"                        # expose the API on port 3000
     restart: unless-stopped
 
+  # ──────────────────────────────────────────────
+  # frontend — Nginx serving the React app
+  # ──────────────────────────────────────────────
   frontend:
     image: ghcr.io/${GHCR_OWNER}/cicd-frontend:${FRONTEND_IMAGE_TAG:-latest}
     depends_on:
-      - backend
+      - backend                            # backend must be started first
     ports:
-      - "8080:8080"
+      - "8080:8080"                        # 👈 users visit the site on port 8080
     restart: unless-stopped
 
 volumes:
-  db-data:
+  db-data:                  # named volume = Postgres data that SURVIVES restarts
